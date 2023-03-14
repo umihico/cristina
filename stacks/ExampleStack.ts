@@ -25,6 +25,6 @@ export function ExampleStack({ stack, app }: StackContext) {
 
   // Show the site URL in the output
   stack.addOutputs({
-    URL: site.url,
+    URL: site.url || "localhost",
   });
 }
