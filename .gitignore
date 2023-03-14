@@ -10,3 +10,6 @@ node_modules
 
 # local env files
 .env*.local
+
+# not sure ignoring this is a good idea
+.sst.config.*.mjs
