@@ -34,3 +34,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OpenNext (https://github.com/serverless-stack/open-next) says 'Add .open-next to your .gitignore file.'
+/.open-next/
