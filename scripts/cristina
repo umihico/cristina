@@ -1,0 +1,16 @@
+#!/bin/bash
+set -euo pipefail
+
+cd $PROJECT_ROOT
+
+case ${1} in
+( dev )
+docker-compose up --build
+open -a 'Google Chrome' "http://localhost:${NEXTJS_PORT}"
+;;
+( destroy-dev )
+docker-compose down -v
+docker-compose run --rm sst npx sst remove
+;;
+esac
+
