@@ -1,3 +1,4 @@
+import { RemovalPolicy } from "aws-cdk-lib";
 import { NextjsSite, StackContext, Table } from "sst/constructs";
 
 export function ExampleStack({ stack, app }: StackContext) {
@@ -8,6 +9,12 @@ export function ExampleStack({ stack, app }: StackContext) {
       counter: "string",
     },
     primaryIndex: { partitionKey: "counter" },
+    cdk: {
+      table: {
+        removalPolicy:
+          app.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      },
+    },
   });
 
   // Create a Next.js site

@@ -1,0 +1,27 @@
+version: "3"
+services:
+  # to destroy the stack, run `docker-compose run --rm sst npx sst remove`
+  sst:
+    build: .
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ["npx", "sst", "dev"]
+  nextjs:
+    build: .
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/frontend/node_modules
+    ports:
+      - "${NEXTJS_PORT}:3000"
+    command: ["npm", "run", "dev"]
+    working_dir: /app/frontend
