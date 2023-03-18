@@ -28,15 +28,6 @@ export function ExampleStack({ stack, app }: StackContext) {
     },
   });
 
-  if (app.stage !== "prod") {
-    new BucketDeployment(stack, "SampleImageDeployment", {
-      // not working. need to fix.
-      sources: [Source.asset("./sample-images")],
-      destinationBucket: imageBucket.cdk.bucket,
-      destinationKeyPrefix: "images",
-    });
-  }
-
   // Create a Next.js site
   const site = new NextjsSite(stack, "Site", {
     path: "frontend",
