@@ -1,5 +1,5 @@
 import { RemovalPolicy } from "aws-cdk-lib";
-import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
+import { HttpMethods } from "aws-cdk-lib/aws-s3";
 import { Bucket, NextjsSite, StackContext, Table } from "sst/constructs";
 
 export function ExampleStack({ stack, app }: StackContext) {
@@ -21,6 +21,19 @@ export function ExampleStack({ stack, app }: StackContext) {
   const imageBucket = new Bucket(stack, "ImageBucket", {
     cdk: {
       bucket: {
+        cors: [
+          {
+            allowedHeaders: ["*"],
+            allowedMethods: [
+              "PUT",
+              "POST",
+              "GET",
+              "DELETE",
+              "HEAD",
+            ] as HttpMethods[],
+            allowedOrigins: ["*"],
+          },
+        ],
         bucketName: `cristina-image-bucket-${app.stage}-${stack.account}`,
         removalPolicy:
           app.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
@@ -35,11 +48,13 @@ export function ExampleStack({ stack, app }: StackContext) {
       // Pass the table details to our app
       REGION: app.region,
       TABLE_NAME: table.tableName,
+      BUCKET_NAME: imageBucket.bucketName,
     },
   });
 
   // Allow the Next.js API to access the table
   site.attachPermissions([table]);
+  site.attachPermissions([imageBucket]);
 
   // Show the site URL in the output
   stack.addOutputs({
