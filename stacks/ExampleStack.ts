@@ -32,6 +32,6 @@ export function ExampleStack({ stack, app }: StackContext) {
 
   // Show the site URL in the output
   stack.addOutputs({
-    URL: site.url || "localhost",
+    URL: site.url || "http://localhost:3000",
   });
 }
