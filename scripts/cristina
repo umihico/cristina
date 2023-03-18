@@ -5,8 +5,8 @@ cd $PROJECT_ROOT
 
 case ${1} in
 ( dev )
-docker-compose up --build
 open -a 'Google Chrome' "http://localhost:${NEXTJS_PORT}"
+docker-compose up --build
 ;;
 ( destroy-dev )
 docker-compose down -v

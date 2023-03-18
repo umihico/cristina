@@ -13,3 +13,5 @@ node_modules
 
 # not sure ignoring this is a good idea
 .sst.config.*.mjs
+
+sample-images
