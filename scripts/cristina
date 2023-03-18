@@ -4,6 +4,9 @@ set -euo pipefail
 cd $PROJECT_ROOT
 
 case ${1} in
+( chrome )
+open -a 'Google Chrome' "http://localhost:${NEXTJS_PORT}"
+;;
 ( dev )
 open -a 'Google Chrome' "http://localhost:${NEXTJS_PORT}"
 docker-compose up --build

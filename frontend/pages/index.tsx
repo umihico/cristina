@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import ImageUploading, { ImageListType } from "react-images-uploading";
-import { SignatureResponseData } from "./api/sign";
-
-const requestSignedUrl = async (
-  fileExtension: string,
-  contentType: string
-): Promise<SignatureResponseData> =>
-  fetch(`/api/sign?contentType=${contentType}&fileExtension=${fileExtension}`, {
-    method: "POST",
-  }).then((x) => x.json());
+import { requestInsertion } from "./api/dynamo";
+import { requestSignedUrl } from "./api/sign";
 
 export default function App() {
   const [count, setCount] = useState(null);
@@ -39,8 +32,9 @@ export default function App() {
         "Content-Type": file.type,
       },
     };
-    const uploadResponse = await fetch(signedUrl, options);
-    console.log(await uploadResponse.text());
+    await fetch(signedUrl, options);
+    const path = signedUrl.split(".s3.amazonaws.com/")[1].split("?")[0];
+    await requestInsertion(path);
   };
   return (
     <div className="App">
