@@ -1,5 +1,6 @@
 import { RemovalPolicy } from "aws-cdk-lib";
-import { NextjsSite, StackContext, Table } from "sst/constructs";
+import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
+import { Bucket, NextjsSite, StackContext, Table } from "sst/constructs";
 
 export function ExampleStack({ stack, app }: StackContext) {
   // Add your first construct
@@ -16,6 +17,25 @@ export function ExampleStack({ stack, app }: StackContext) {
       },
     },
   });
+
+  const imageBucket = new Bucket(stack, "ImageBucket", {
+    cdk: {
+      bucket: {
+        bucketName: `cristina-image-bucket-${app.stage}-${stack.account}`,
+        removalPolicy:
+          app.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      },
+    },
+  });
+
+  if (app.stage !== "prod") {
+    new BucketDeployment(stack, "SampleImageDeployment", {
+      // not working. need to fix.
+      sources: [Source.asset("./sample-images")],
+      destinationBucket: imageBucket.cdk.bucket,
+      destinationKeyPrefix: "images",
+    });
+  }
 
   // Create a Next.js site
   const site = new NextjsSite(stack, "Site", {
