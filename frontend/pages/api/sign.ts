@@ -13,7 +13,7 @@ export type SignatureResponseData = {
   signedUrl: string;
 };
 
-const s3 = new AWS.S3({
+export const s3 = new AWS.S3({
   apiVersion: "2010-12-01",
   signatureVersion: "v4",
   region: process.env.REGION,

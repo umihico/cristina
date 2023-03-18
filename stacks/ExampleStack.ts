@@ -5,13 +5,16 @@ import { Bucket, NextjsSite, StackContext, Table } from "sst/constructs";
 export function ExampleStack({ stack, app }: StackContext) {
   // Add your first construct
   // Create the table
-  const table = new Table(stack, "Counter", {
+  const table = new Table(stack, "Record", {
     fields: {
-      counter: "string",
+      s3_path: "string",
+      owner_name: "string",
+      ip: "string",
     },
-    primaryIndex: { partitionKey: "counter" },
+    primaryIndex: { partitionKey: "s3_path" },
     cdk: {
       table: {
+        tableName: `cristina-image-records-${app.stage}-${stack.account}`,
         removalPolicy:
           app.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       },

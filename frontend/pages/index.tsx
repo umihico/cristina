@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ImageUploading, { ImageListType } from "react-images-uploading";
+import { requestInsertion } from "./api/dynamo";
 import { requestSignedUrl } from "./api/sign";
 
 export default function App() {
@@ -32,6 +33,8 @@ export default function App() {
       },
     };
     await fetch(signedUrl, options);
+    const path = signedUrl.split(".s3.amazonaws.com/")[1].split("?")[0];
+    await requestInsertion(path);
   };
   return (
     <div className="App">
