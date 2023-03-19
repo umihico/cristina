@@ -1,5 +1,5 @@
-import AWS from "aws-sdk";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { s3 } from "../../lib/aws/s3";
 
 export const requestSignedUrl = async (
   fileExtension: string,
@@ -12,12 +12,6 @@ export const requestSignedUrl = async (
 export type SignatureResponseData = {
   signedUrl: string;
 };
-
-export const s3 = new AWS.S3({
-  apiVersion: "2010-12-01",
-  signatureVersion: "v4",
-  region: process.env.REGION,
-});
 
 export default async function handler(
   req: NextApiRequest,

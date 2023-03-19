@@ -1,10 +1,6 @@
-import AWS from "aws-sdk";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { s3 } from "./sign";
-
-const dynamoDb = new AWS.DynamoDB.DocumentClient({
-  region: process.env.REGION,
-});
+import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
+import { s3 } from "../../lib/aws/s3";
 
 export const requestInsertion = async (path: string): Promise<{}> =>
   fetch(`/api/dynamo?path=${path}`, {
@@ -24,7 +20,7 @@ export default async function handler(
     .promise();
 
   const params = {
-    TableName: process.env.TABLE_NAME || "cristina-umihico-Record",
+    TableName: dynamoDbTableName,
     Item: {
       s3_path,
       owner_name: "John Doe",
