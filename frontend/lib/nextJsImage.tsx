@@ -16,6 +16,7 @@ export default function NextJsImage({
           sizes={sizes}
           className={className}
           onClick={onClick}
+          quality={25}
         />
       </div>
     </div>
