@@ -20,10 +20,12 @@ export default function App() {
   const onClick = async () => {
     const file = images[0].file;
     if (file === undefined) return;
-    const response = await requestSignedUrl(
-      file.name.split(".").pop() || file.type.split("/").pop() || "png",
-      file.type
-    );
+    const response = await requestSignedUrl({
+      fileExtension:
+        file.name.split(".").pop() || file.type.split("/").pop() || "png",
+      contentType: file.type,
+      lastModified: String(file.lastModified),
+    });
     const signedUrl = response.signedUrl;
     const options = {
       method: "PUT",
