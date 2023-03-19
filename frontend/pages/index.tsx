@@ -1,15 +1,27 @@
-import React, { useState } from "react";
+import { GetServerSideProps } from "next";
+import React from "react";
 import ImageUploading, { ImageListType } from "react-images-uploading";
+import PhotoAlbum from "react-photo-album";
+import { dynamoDb, dynamoDbTableName } from "../lib/aws/dynamodb";
+import { s3Host } from "../lib/aws/s3";
+import { extractDimensions, unsplashPhotos } from "../lib/image";
+import NextJsImage from "../lib/nextJsImage";
 import { requestInsertion } from "./api/dynamo";
 import { requestSignedUrl } from "./api/sign";
 
-export default function App() {
-  const [count, setCount] = useState(null);
+type Props = {
+  photos: {
+    src: string;
+    width: number;
+    height: number;
+  }[];
+};
 
+export default function App({ photos }: Props) {
   const [images, setImages] = React.useState<ImageListType>([]);
   const maxNumber = 1;
 
-  const onChange = (
+  const onChange = async (
     imageList: ImageListType,
     addUpdateIndex: number[] | undefined
   ) => {
@@ -36,10 +48,18 @@ export default function App() {
     };
     await fetch(signedUrl, options);
     const path = signedUrl.split(".s3.amazonaws.com/")[1].split("?")[0];
-    await requestInsertion(path);
+    const { width, height } = await extractDimensions(file);
+    await requestInsertion({ path, width, height });
   };
   return (
     <div className="App">
+      <PhotoAlbum
+        layout="rows"
+        padding={5}
+        spacing={0}
+        photos={photos}
+        renderPhoto={NextJsImage}
+      />
       <ImageUploading
         multiple
         value={images}
@@ -79,11 +99,30 @@ export default function App() {
           </div>
         )}
       </ImageUploading>
-
       <div className="App">
-        {count && <p>You clicked me {count} times.</p>}
         <button onClick={onClick}>Click Me!</button>
       </div>
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const params = {
+    TableName: dynamoDbTableName,
+  };
+
+  const response = await dynamoDb.scan(params).promise();
+  const photos = [
+    ...(response.Items || []).map((item) => ({
+      src: `https://${s3Host}/${item.s3_path}`,
+      width: item.width || 300,
+      height: item.height || 300,
+    })),
+    ...unsplashPhotos,
+  ];
+  return {
+    props: {
+      photos,
+    },
+  };
+};

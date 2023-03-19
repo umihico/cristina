@@ -10,6 +10,8 @@ export function ExampleStack({ stack, app }: StackContext) {
       s3_path: "string",
       owner_name: "string",
       ip: "string",
+      width: "number",
+      height: "number",
     },
     primaryIndex: { partitionKey: "s3_path" },
     cdk: {
@@ -24,6 +26,7 @@ export function ExampleStack({ stack, app }: StackContext) {
   const imageBucket = new Bucket(stack, "ImageBucket", {
     cdk: {
       bucket: {
+        publicReadAccess: true,
         cors: [
           {
             allowedHeaders: ["*"],
