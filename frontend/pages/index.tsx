@@ -18,7 +18,7 @@ export default function App() {
   };
 
   const onClick = async () => {
-    const file = images[0].file;
+    const file = images[0]?.file;
     if (file === undefined) return;
     const response = await requestSignedUrl({
       fileExtension:
