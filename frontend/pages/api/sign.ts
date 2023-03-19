@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { s3 } from "../../lib/aws/s3";
+import { s3, s3BucketName } from "../../lib/aws/s3";
 
 export const requestSignedUrl = async (
   fileExtension: string,
@@ -18,7 +18,7 @@ export default async function handler(
   res: NextApiResponse<SignatureResponseData>
 ) {
   const s3Params = {
-    Bucket: process.env.BUCKET_NAME || "cristina-umihico-ImageBucket",
+    Bucket: s3BucketName,
     Key: `images/${new Date().valueOf()}.${req.query.fileExtension}`,
     Expires: 60,
     ContentType: req.query.contentType,

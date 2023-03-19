@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
-import { s3 } from "../../lib/aws/s3";
+import { s3, s3BucketName } from "../../lib/aws/s3";
 
 export const requestInsertion = async (path: string): Promise<{}> =>
   fetch(`/api/dynamo?path=${path}`, {
@@ -14,7 +14,7 @@ export default async function handler(
   const s3_path = req.query.path as string;
   await s3
     .getObject({
-      Bucket: process.env.BUCKET_NAME || "cristina-umihico-ImageBucket",
+      Bucket: s3BucketName,
       Key: s3_path,
     })
     .promise();
