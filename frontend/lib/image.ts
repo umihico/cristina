@@ -53,3 +53,5 @@ export const unsplashPhotos = unsplashPhotosArray.map((photo) => {
     height: photo.height,
   };
 });
+
+export const placeholderSvg = "/assets/placeholder.svg";
