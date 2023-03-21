@@ -52,7 +52,7 @@ export default function App({ photos }: Props) {
     await requestInsertion({ path, width, height });
   };
   return (
-    <div className="App">
+    <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
       <PhotoAlbum
         layout="rows"
         padding={5}
@@ -99,7 +99,7 @@ export default function App({ photos }: Props) {
           </div>
         )}
       </ImageUploading>
-      <div className="App">
+      <div>
         <button onClick={onClick}>Click Me!</button>
       </div>
     </div>
