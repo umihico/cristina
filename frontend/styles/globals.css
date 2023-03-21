@@ -17,3 +17,7 @@ p {
 button {
   font-size: 48px;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
