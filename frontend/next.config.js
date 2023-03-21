@@ -6,9 +6,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: `${
-          process.env.BUCKET_NAME || "cristina-umihico-ImageBucket"
-        }.s3.amazonaws.com`,
+        hostname: "**.s3.amazonaws.com",
         port: "",
         pathname: "/images/**",
       },
