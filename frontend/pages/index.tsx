@@ -1,4 +1,5 @@
 import { GetServerSideProps } from "next";
+import Image from "next/image";
 import React from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
@@ -59,6 +60,16 @@ export default function App({ photos }: Props) {
     <>
       {processing && <Loader></Loader>}
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
+        <Image
+          className="mx-auto"
+          src="/assets/title.webp"
+          alt="header"
+          height={256 * 0.8}
+          width={652 * 0.8}
+        />
+        <div className="text-right w-full">
+          <span>CASTELBRANDO 1 MAGGIO 2023</span>
+        </div>
         <PhotoAlbum
           layout="rows"
           padding={5}
