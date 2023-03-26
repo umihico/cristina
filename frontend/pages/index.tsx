@@ -6,23 +6,19 @@ import { MdOutlineAdd } from "react-icons/md";
 import ImageUploading, { ImageListType } from "react-images-uploading";
 import PhotoAlbum from "react-photo-album";
 import { Loader } from "../components/loader";
-import { dynamoDb, dynamoDbTableName } from "../lib/aws/dynamodb";
-import { s3Host } from "../lib/aws/s3";
-import { extractDimensions, unsplashPhotos } from "../lib/image";
+import { extractDimensions } from "../lib/image";
 import NextJsImage from "../lib/nextJsImage";
 import { requestInsertion } from "./api/dynamo";
+import { Photo, fetchPhotos } from "./api/photos";
 import { requestSignedUrl } from "./api/sign";
 import s from "./style.module.scss";
 
 type Props = {
-  photos: {
-    src: string;
-    width: number;
-    height: number;
-  }[];
+  photos: Photo[];
 };
 
-export default function App({ photos }: Props) {
+export default function App({ photos: initPhotos }: Props) {
+  const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   const [images, setImages] = React.useState<ImageListType>([]);
   const [processing, setProcessing] = React.useState(false);
 
@@ -131,22 +127,9 @@ export default function App({ photos }: Props) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const params = {
-    TableName: dynamoDbTableName,
-  };
-
-  const response = await dynamoDb.scan(params).promise();
-  const photos = [
-    ...(response.Items || []).map((item) => ({
-      src: `https://${s3Host}/${item.s3_path}`,
-      width: item.width || 300,
-      height: item.height || 300,
-    })),
-    ...unsplashPhotos,
-  ];
   return {
     props: {
-      photos,
+      photos: await fetchPhotos(),
     },
   };
 };
