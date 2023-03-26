@@ -9,7 +9,7 @@ import { Loader } from "../components/loader";
 import { extractDimensions } from "../lib/image";
 import NextJsImage from "../lib/nextJsImage";
 import { requestInsertion } from "./api/dynamo";
-import { Photo, fetchPhotos } from "./api/photos";
+import { Photo, fetchPhotos, fetchPhotosByApi } from "./api/photos";
 import { requestSignedUrl } from "./api/sign";
 import s from "./style.module.scss";
 
@@ -45,6 +45,7 @@ export default function App({ photos: initPhotos }: Props) {
       const path = signedUrl.split(".s3.amazonaws.com/")[1].split("?")[0];
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
+      setPhotos((await fetchPhotosByApi()).photos);
     } catch (error) {
       alert(error);
     } finally {

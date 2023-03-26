@@ -1,3 +1,4 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
 import { s3Host } from "../../lib/aws/s3";
 import { unsplashPhotos } from "../../lib/image";
@@ -23,4 +24,20 @@ export const fetchPhotos = async (): Promise<Photo[]> => {
     ...unsplashPhotos,
   ];
   return photos;
+};
+
+export type PhotosResponseData = {
+  photos: Photo[];
+};
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<PhotosResponseData>
+) {
+  const photos = await fetchPhotos();
+  res.status(200).send({ photos });
+}
+
+export const fetchPhotosByApi = async (): Promise<PhotosResponseData> => {
+  return await fetch("/api/photos").then((x) => x.json());
 };
