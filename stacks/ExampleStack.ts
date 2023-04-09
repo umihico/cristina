@@ -47,9 +47,16 @@ export function ExampleStack({ stack, app }: StackContext) {
     },
   });
 
+  const domain = `cristina${
+    app.stage === "prod" ? "" : "-" + app.stage
+  }.umihi.co`;
   // Create a Next.js site
   const site = new NextjsSite(stack, "Site", {
     path: "frontend",
+    customDomain: {
+      domainName: domain,
+      domainAlias: `www.${domain}`,
+    },
     environment: {
       // Pass the table details to our app
       REGION: app.region,
