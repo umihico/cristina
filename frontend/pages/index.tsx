@@ -5,6 +5,9 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
 import ImageUploading, { ImageListType } from "react-images-uploading";
 import PhotoAlbum from "react-photo-album";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
+import NextJsImageLightBox from "../components/NextJsImage";
 import { Loader } from "../components/loader";
 import { extractDimensions } from "../lib/image";
 import NextJsImage from "../lib/nextJsImage";
@@ -18,6 +21,7 @@ type Props = {
 };
 
 export default function App({ photos: initPhotos }: Props) {
+  const [open, setOpen] = React.useState(false);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   const [images, setImages] = React.useState<ImageListType>([]);
   const [processing, setProcessing] = React.useState(false);
@@ -56,6 +60,13 @@ export default function App({ photos: initPhotos }: Props) {
   return (
     <>
       {processing && <Loader></Loader>}
+      <Lightbox
+        open={open}
+        index={lightBoxIndex}
+        close={() => setOpen(false)}
+        slides={photos}
+        render={{ slide: NextJsImageLightBox }}
+      />
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
         <Image
           className="mx-auto"
@@ -73,6 +84,10 @@ export default function App({ photos: initPhotos }: Props) {
           spacing={0}
           photos={photos}
           renderPhoto={NextJsImage}
+          onClick={({ index }) => {
+            setLightBoxIndex(index);
+            setOpen(true);
+          }}
         />
         <ImageUploading
           multiple
