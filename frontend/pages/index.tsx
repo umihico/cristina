@@ -22,6 +22,7 @@ type Props = {
 
 export default function App({ photos: initPhotos }: Props) {
   const [open, setOpen] = React.useState(false);
+  const [lightBoxIndex, setLightBoxIndex] = React.useState(0);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   const [images, setImages] = React.useState<ImageListType>([]);
   const [processing, setProcessing] = React.useState(false);
@@ -60,13 +61,6 @@ export default function App({ photos: initPhotos }: Props) {
   return (
     <>
       {processing && <Loader></Loader>}
-      <Lightbox
-        open={open}
-        index={lightBoxIndex}
-        close={() => setOpen(false)}
-        slides={photos}
-        render={{ slide: NextJsImageLightBox }}
-      />
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
         <Image
           className="mx-auto"
@@ -89,6 +83,19 @@ export default function App({ photos: initPhotos }: Props) {
             setOpen(true);
           }}
         />
+        {/* PhotoAlbumとLightboxを同列に置くと再レンダー・通信が発生してチラつく？divタグで直ってるかは不明、Console開くと発現する？ */}
+        <div>
+          <Lightbox
+            styles={{
+              container: { backgroundColor: "rgba(0, 0, 0, .8)" },
+            }}
+            open={open}
+            index={lightBoxIndex}
+            close={() => setOpen(false)}
+            slides={photos}
+            render={{ slide: NextJsImageLightBox }}
+          />
+        </div>
         <ImageUploading
           multiple
           value={images}

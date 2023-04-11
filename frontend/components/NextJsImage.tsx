@@ -1,17 +1,14 @@
 import Image from "next/image";
-import { SlideImage } from "yet-another-react-lightbox";
+import { RenderSlideProps, SlideImage } from "yet-another-react-lightbox";
 import {
   isImageFitCover,
   isImageSlide,
   useLightboxProps,
 } from "yet-another-react-lightbox/core";
 
-type Props = {
+// not sure this type is right
+type Props = RenderSlideProps & {
   slide: SlideImage;
-  rect: {
-    width: number;
-    height: number;
-  };
 };
 
 export default function NextJsImage({ slide, rect }: Props) {
@@ -29,7 +26,6 @@ export default function NextJsImage({ slide, rect }: Props) {
         Math.min(rect.height, (rect.width / slide.width!) * slide.height!)
       )
     : rect.height;
-
   return (
     <div style={{ position: "relative", width, height }}>
       <Image
