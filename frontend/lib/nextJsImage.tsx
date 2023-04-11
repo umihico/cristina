@@ -30,7 +30,7 @@ export default function NextJsImage({
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
         <Image
           fill
-          loading="eager" // eagerにすることで、lightboxのon/offで再renderされ通信・画面チラつきを抑える試み（改善結果不明瞭・原因不明）
+          loading="eager"
           src={src}
           alt={alt}
           title={title}

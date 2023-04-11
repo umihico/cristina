@@ -73,6 +73,7 @@ export default function App({ photos: initPhotos }: Props) {
           <span>CASTELBRANDO 1 MAGGIO 2023</span>
         </div>
         <PhotoAlbum
+          // コンソールを開いた状態でlightboxなどのstateが動くと何故か再レンダー・通信が発生しチラつく
           layout="rows"
           padding={5}
           spacing={0}
@@ -83,19 +84,16 @@ export default function App({ photos: initPhotos }: Props) {
             setOpen(true);
           }}
         />
-        {/* PhotoAlbumとLightboxを同列に置くと再レンダー・通信が発生してチラつく？divタグで直ってるかは不明、Console開くと発現する？ */}
-        <div>
-          <Lightbox
-            styles={{
-              container: { backgroundColor: "rgba(0, 0, 0, .8)" },
-            }}
-            open={open}
-            index={lightBoxIndex}
-            close={() => setOpen(false)}
-            slides={photos}
-            render={{ slide: NextJsImageLightBox }}
-          />
-        </div>
+        <Lightbox
+          styles={{
+            container: { backgroundColor: "rgba(0, 0, 0, .8)" },
+          }}
+          open={open}
+          index={lightBoxIndex}
+          close={() => setOpen(false)}
+          slides={photos}
+          render={{ slide: NextJsImageLightBox }}
+        />
         <ImageUploading
           multiple
           value={images}
