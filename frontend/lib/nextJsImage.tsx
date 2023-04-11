@@ -30,6 +30,7 @@ export default function NextJsImage({
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
         <Image
           fill
+          loading="eager"
           src={src}
           alt={alt}
           title={title}
