@@ -15,9 +15,16 @@ import s from "./style.module.scss";
 
 type Props = {
   photos: Photo[];
+  lastEvaluatedPath: string;
 };
 
-export default function App({ photos: initPhotos }: Props) {
+export default function App({
+  photos: initPhotos,
+  lastEvaluatedPath: initLastEvaluatedPath,
+}: Props) {
+  const [lastEvaluatedPath, setLastEvaluatedPath] = React.useState<
+    string | undefined
+  >(initLastEvaluatedPath);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   const [images, setImages] = React.useState<ImageListType>([]);
   const [processing, setProcessing] = React.useState(false);
@@ -45,13 +52,22 @@ export default function App({ photos: initPhotos }: Props) {
       const path = signedUrl.split(".s3.amazonaws.com/")[1].split("?")[0];
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
-      setPhotos((await fetchPhotosByApi()).photos);
+
+      if (lastEvaluatedPath === undefined) return;
+      setPhotos((await fetchPhotosByApi(lastEvaluatedPath)).photos);
     } catch (error) {
       alert(error);
     } finally {
       setImages([]);
       setProcessing(false);
     }
+  };
+  const loadMoreAlbum = async () => {
+    if (lastEvaluatedPath === undefined) return;
+
+    const { photos, path } = await fetchPhotosByApi(lastEvaluatedPath);
+    setLastEvaluatedPath(path as string);
+    setPhotos((prev) => [...prev, ...photos]);
   };
   return (
     <>
@@ -68,6 +84,16 @@ export default function App({ photos: initPhotos }: Props) {
           <span>CASTELBRANDO 1 MAGGIO 2023</span>
         </div>
         <Album photos={photos}></Album>
+        <div className="flex justify-center items-center w-full h-16 my-4">
+          {lastEvaluatedPath && (
+            <button
+              className="w-1/2 h-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl md:text-3xl font-bold"
+              onClick={loadMoreAlbum}
+            >
+              More?
+            </button>
+          )}
+        </div>
         <ImageUploading
           multiple
           value={images}
@@ -122,9 +148,8 @@ export default function App({ photos: initPhotos }: Props) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { photos, path } = await fetchPhotos({});
   return {
-    props: {
-      photos: await fetchPhotos(),
-    },
+    props: { photos, lastEvaluatedPath: path },
   };
 };

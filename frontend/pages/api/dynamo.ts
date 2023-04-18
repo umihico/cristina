@@ -22,7 +22,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log({ body: req.body });
   const { path, width, height } = JSON.parse(req.body) as Props;
   await s3
     .getObject({
@@ -41,6 +40,6 @@ export default async function handler(
       ip: "111.111.111.111",
     },
   };
-  await dynamoDb.put(params).promise();
+  await dynamoDb().put(params).promise();
   return res.status(204).send(null);
 }
