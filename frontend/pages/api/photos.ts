@@ -51,13 +51,17 @@ export default async function handler(
   res: NextApiResponse<PhotosResponseData>
 ) {
   const { photos, path } = await fetchPhotos({
-    exclusiveStartKey: { s3_path: req.query.path } as Key | undefined,
+    exclusiveStartKey: req.query.path
+      ? ({ s3_path: req.query.path } as Key)
+      : undefined,
   });
   res.status(200).send({ photos, path });
 }
 
 export const fetchPhotosByApi = async (
-  path: string
+  path: string | null
 ): Promise<PhotosResponseData> => {
-  return await fetch(`/api/photos?path=${path}`).then((x) => x.json());
+  return await fetch(`/api/photos?${path ? `path=${path}` : ""}`).then((x) =>
+    x.json()
+  );
 };

@@ -51,7 +51,6 @@ export default function App({
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
 
-      if (lastEvaluatedPath === null) return;
       setPhotos((await fetchPhotosByApi(lastEvaluatedPath)).photos);
     } catch (error) {
       alert(error);
