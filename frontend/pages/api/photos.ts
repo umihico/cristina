@@ -12,7 +12,7 @@ export type Photo = {
 const toParams = (exclusiveStartKey: Key | undefined) => {
   return {
     TableName: dynamoDbTableName,
-    Limit: 5,
+    Limit: 30,
     ExclusiveStartKey: exclusiveStartKey,
   };
 };
