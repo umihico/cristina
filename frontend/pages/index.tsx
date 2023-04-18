@@ -7,6 +7,7 @@ import ImageUploading, { ImageListType } from "react-images-uploading";
 import "yet-another-react-lightbox/styles.css";
 import { Album } from "../components/album";
 import { Loader } from "../components/loader";
+import { InsertMockPhotoButton } from "../components/mock";
 import { extractDimensions } from "../lib/image";
 import { requestInsertion } from "./api/dynamo";
 import { Photo, fetchPhotos, fetchPhotosByApi } from "./api/photos";
@@ -54,6 +55,7 @@ export default function App({
       setPhotos((await fetchPhotosByApi(lastEvaluatedPath)).photos);
     } catch (error) {
       alert(error);
+      throw error;
     } finally {
       setImages([]);
       setProcessing(false);
@@ -70,6 +72,7 @@ export default function App({
     <>
       {processing && <Loader></Loader>}
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
+        <InsertMockPhotoButton upload={upload}></InsertMockPhotoButton>
         <Image
           className="mx-auto"
           src="/assets/title.webp"
