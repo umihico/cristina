@@ -27,6 +27,7 @@ export const Album = ({ photos }: Props) => {
         }}
       />
       <Lightbox
+        animation={{ swipe: 0 }} // 本番・スマホ環境でswipeあると前の画像が何故か一瞬表示されチラつくのでOFFに
         styles={{
           container: { backgroundColor: "rgba(0, 0, 0, .8)" },
         }}
