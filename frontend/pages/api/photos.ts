@@ -12,7 +12,7 @@ export type Photo = {
 const toParams = (exclusiveStartKey: Key | undefined) => {
   return {
     TableName: dynamoDbTableName,
-    Limit: 30,
+    Limit: 20, // lambdaの同時実行数は10なので、2回のフェッチで全件表示させる
     ExclusiveStartKey: exclusiveStartKey,
   };
 };
