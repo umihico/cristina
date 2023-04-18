@@ -4,13 +4,10 @@ import React from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
 import ImageUploading, { ImageListType } from "react-images-uploading";
-import PhotoAlbum from "react-photo-album";
-import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
-import NextJsImageLightBox from "../components/NextJsImage";
+import { Album } from "../components/album";
 import { Loader } from "../components/loader";
 import { extractDimensions } from "../lib/image";
-import NextJsImage from "../lib/nextJsImage";
 import { requestInsertion } from "./api/dynamo";
 import { Photo, fetchPhotos, fetchPhotosByApi } from "./api/photos";
 import { requestSignedUrl } from "./api/sign";
@@ -18,11 +15,16 @@ import s from "./style.module.scss";
 
 type Props = {
   photos: Photo[];
+  lastEvaluatedPath: string;
 };
 
-export default function App({ photos: initPhotos }: Props) {
-  const [open, setOpen] = React.useState(false);
-  const [lightBoxIndex, setLightBoxIndex] = React.useState(0);
+export default function App({
+  photos: initPhotos,
+  lastEvaluatedPath: initLastEvaluatedPath,
+}: Props) {
+  const [lastEvaluatedPath, setLastEvaluatedPath] = React.useState<
+    string | undefined
+  >(initLastEvaluatedPath);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   const [images, setImages] = React.useState<ImageListType>([]);
   const [processing, setProcessing] = React.useState(false);
@@ -50,13 +52,22 @@ export default function App({ photos: initPhotos }: Props) {
       const path = signedUrl.split(".s3.amazonaws.com/")[1].split("?")[0];
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
-      setPhotos((await fetchPhotosByApi()).photos);
+
+      if (lastEvaluatedPath === undefined) return;
+      setPhotos((await fetchPhotosByApi(lastEvaluatedPath)).photos);
     } catch (error) {
       alert(error);
     } finally {
       setImages([]);
       setProcessing(false);
     }
+  };
+  const loadMoreAlbum = async () => {
+    if (lastEvaluatedPath === undefined) return;
+
+    const { photos, path } = await fetchPhotosByApi(lastEvaluatedPath);
+    setLastEvaluatedPath(path as string);
+    setPhotos((prev) => [...prev, ...photos]);
   };
   return (
     <>
@@ -72,28 +83,17 @@ export default function App({ photos: initPhotos }: Props) {
         <div className="text-right w-full">
           <span>CASTELBRANDO 1 MAGGIO 2023</span>
         </div>
-        <PhotoAlbum
-          // コンソールを開いた状態でlightboxなどのstateが動くと何故か再レンダー・通信が発生しチラつく
-          layout="rows"
-          padding={5}
-          spacing={0}
-          photos={photos}
-          renderPhoto={NextJsImage}
-          onClick={({ index }) => {
-            setLightBoxIndex(index);
-            setOpen(true);
-          }}
-        />
-        <Lightbox
-          styles={{
-            container: { backgroundColor: "rgba(0, 0, 0, .8)" },
-          }}
-          open={open}
-          index={lightBoxIndex}
-          close={() => setOpen(false)}
-          slides={photos}
-          render={{ slide: NextJsImageLightBox }}
-        />
+        <Album photos={photos}></Album>
+        <div className="flex justify-center items-center w-full h-16 my-4">
+          {lastEvaluatedPath && (
+            <button
+              className="w-1/2 h-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl md:text-3xl font-bold"
+              onClick={loadMoreAlbum}
+            >
+              More?
+            </button>
+          )}
+        </div>
         <ImageUploading
           multiple
           value={images}
@@ -148,9 +148,8 @@ export default function App({ photos: initPhotos }: Props) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { photos, path } = await fetchPhotos({});
   return {
-    props: {
-      photos: await fetchPhotos(),
-    },
+    props: { photos, lastEvaluatedPath: path },
   };
 };
