@@ -12,7 +12,7 @@ export type Photo = {
 const toParams = (exclusiveStartKey: Key | undefined) => {
   return {
     TableName: dynamoDbTableName,
-    Limit: 30,
+    Limit: 20, // lambdaの同時実行数は10なので、2回のフェッチで全件表示させる
     ExclusiveStartKey: exclusiveStartKey,
   };
 };
@@ -25,7 +25,7 @@ export const fetchPhotos = async ({
   exclusiveStartKey,
 }: Props): Promise<{
   photos: Photo[];
-  path: string;
+  path: string | null;
 }> => {
   const params = toParams(exclusiveStartKey);
   const response = await dynamoDb().scan(params).promise();
@@ -37,13 +37,13 @@ export const fetchPhotos = async ({
     })),
     // ...unsplashPhotos,
   ];
-  const path = response.LastEvaluatedKey?.s3_path as string;
+  const path = (response.LastEvaluatedKey?.s3_path as string) || null;
   return { photos, path };
 };
 
 export type PhotosResponseData = {
   photos: Photo[];
-  path?: string;
+  path: string | null;
 };
 
 export default async function handler(
@@ -51,13 +51,17 @@ export default async function handler(
   res: NextApiResponse<PhotosResponseData>
 ) {
   const { photos, path } = await fetchPhotos({
-    exclusiveStartKey: { s3_path: req.query.path } as Key | undefined,
+    exclusiveStartKey: req.query.path
+      ? ({ s3_path: req.query.path } as Key)
+      : undefined,
   });
   res.status(200).send({ photos, path });
 }
 
 export const fetchPhotosByApi = async (
-  path: string
+  path: string | null
 ): Promise<PhotosResponseData> => {
-  return await fetch(`/api/photos?path=${path}`).then((x) => x.json());
+  return await fetch(`/api/photos?${path ? `path=${path}` : ""}`).then((x) =>
+    x.json()
+  );
 };

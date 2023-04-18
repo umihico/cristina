@@ -7,6 +7,7 @@ import ImageUploading, { ImageListType } from "react-images-uploading";
 import "yet-another-react-lightbox/styles.css";
 import { Album } from "../components/album";
 import { Loader } from "../components/loader";
+import { InsertMockPhotoButton } from "../components/mock";
 import { extractDimensions } from "../lib/image";
 import { requestInsertion } from "./api/dynamo";
 import { Photo, fetchPhotos, fetchPhotosByApi } from "./api/photos";
@@ -23,17 +24,14 @@ export default function App({
   lastEvaluatedPath: initLastEvaluatedPath,
 }: Props) {
   const [lastEvaluatedPath, setLastEvaluatedPath] = React.useState<
-    string | undefined
+    string | null
   >(initLastEvaluatedPath);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   const [images, setImages] = React.useState<ImageListType>([]);
   const [processing, setProcessing] = React.useState(false);
-
-  const upload = async () => {
+  const upload = async (file: File) => {
     setProcessing(true);
     try {
-      const file = images[0]?.file;
-      if (file === undefined) return;
       const response = await requestSignedUrl({
         fileExtension:
           file.name.split(".").pop() || file.type.split("/").pop() || "png",
@@ -43,7 +41,7 @@ export default function App({
       const signedUrl = response.signedUrl;
       const options = {
         method: "PUT",
-        body: images[0].file,
+        body: file,
         headers: {
           "Content-Type": file.type,
         },
@@ -53,17 +51,17 @@ export default function App({
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
 
-      if (lastEvaluatedPath === undefined) return;
       setPhotos((await fetchPhotosByApi(lastEvaluatedPath)).photos);
     } catch (error) {
       alert(error);
+      throw error;
     } finally {
       setImages([]);
       setProcessing(false);
     }
   };
   const loadMoreAlbum = async () => {
-    if (lastEvaluatedPath === undefined) return;
+    if (lastEvaluatedPath === null) return;
 
     const { photos, path } = await fetchPhotosByApi(lastEvaluatedPath);
     setLastEvaluatedPath(path as string);
@@ -73,6 +71,7 @@ export default function App({
     <>
       {processing && <Loader></Loader>}
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
+        <InsertMockPhotoButton upload={upload}></InsertMockPhotoButton>
         <Image
           className="mx-auto"
           src="/assets/title.webp"
@@ -133,7 +132,11 @@ export default function App({
                   <FaTimes />
                 </button>
                 <button
-                  onClick={upload}
+                  onClick={() => {
+                    const file = images[0]?.file;
+                    if (file === undefined) return;
+                    upload(file);
+                  }}
                   className={`w-1/2 h-12 m-4 rounded-lg border-2 border-white bg-green-500 text-white flex justify-center items-center`}
                 >
                   <FaCheck />
