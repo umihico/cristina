@@ -2,7 +2,6 @@ import { Key } from "aws-sdk/clients/dynamodb";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
 import { s3Host } from "../../lib/aws/s3";
-import { unsplashPhotos } from "../../lib/image";
 
 export type Photo = {
   src: string;
@@ -13,7 +12,7 @@ export type Photo = {
 const toParams = (exclusiveStartKey: Key | undefined) => {
   return {
     TableName: dynamoDbTableName,
-    Limit: 5,
+    Limit: 30,
     ExclusiveStartKey: exclusiveStartKey,
   };
 };
@@ -36,7 +35,7 @@ export const fetchPhotos = async ({
       width: item.width || 300,
       height: item.height || 300,
     })),
-    ...unsplashPhotos,
+    // ...unsplashPhotos,
   ];
   const path = response.LastEvaluatedKey?.s3_path as string;
   return { photos, path };
