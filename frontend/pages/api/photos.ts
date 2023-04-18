@@ -25,7 +25,7 @@ export const fetchPhotos = async ({
   exclusiveStartKey,
 }: Props): Promise<{
   photos: Photo[];
-  path: string;
+  path: string | null;
 }> => {
   const params = toParams(exclusiveStartKey);
   const response = await dynamoDb().scan(params).promise();
@@ -37,13 +37,13 @@ export const fetchPhotos = async ({
     })),
     // ...unsplashPhotos,
   ];
-  const path = response.LastEvaluatedKey?.s3_path as string;
+  const path = (response.LastEvaluatedKey?.s3_path as string) || null;
   return { photos, path };
 };
 
 export type PhotosResponseData = {
   photos: Photo[];
-  path?: string;
+  path: string | null;
 };
 
 export default async function handler(

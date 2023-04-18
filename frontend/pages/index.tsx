@@ -23,7 +23,7 @@ export default function App({
   lastEvaluatedPath: initLastEvaluatedPath,
 }: Props) {
   const [lastEvaluatedPath, setLastEvaluatedPath] = React.useState<
-    string | undefined
+    string | null
   >(initLastEvaluatedPath);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   const [images, setImages] = React.useState<ImageListType>([]);
@@ -53,7 +53,7 @@ export default function App({
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
 
-      if (lastEvaluatedPath === undefined) return;
+      if (lastEvaluatedPath === null) return;
       setPhotos((await fetchPhotosByApi(lastEvaluatedPath)).photos);
     } catch (error) {
       alert(error);
@@ -63,7 +63,7 @@ export default function App({
     }
   };
   const loadMoreAlbum = async () => {
-    if (lastEvaluatedPath === undefined) return;
+    if (lastEvaluatedPath === null) return;
 
     const { photos, path } = await fetchPhotosByApi(lastEvaluatedPath);
     setLastEvaluatedPath(path as string);
