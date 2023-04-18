@@ -28,12 +28,9 @@ export default function App({
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   const [images, setImages] = React.useState<ImageListType>([]);
   const [processing, setProcessing] = React.useState(false);
-
-  const upload = async () => {
+  const upload = async (file: File) => {
     setProcessing(true);
     try {
-      const file = images[0]?.file;
-      if (file === undefined) return;
       const response = await requestSignedUrl({
         fileExtension:
           file.name.split(".").pop() || file.type.split("/").pop() || "png",
@@ -43,7 +40,7 @@ export default function App({
       const signedUrl = response.signedUrl;
       const options = {
         method: "PUT",
-        body: images[0].file,
+        body: file,
         headers: {
           "Content-Type": file.type,
         },
@@ -133,7 +130,11 @@ export default function App({
                   <FaTimes />
                 </button>
                 <button
-                  onClick={upload}
+                  onClick={() => {
+                    const file = images[0]?.file;
+                    if (file === undefined) return;
+                    upload(file);
+                  }}
                   className={`w-1/2 h-12 m-4 rounded-lg border-2 border-white bg-green-500 text-white flex justify-center items-center`}
                 >
                   <FaCheck />
