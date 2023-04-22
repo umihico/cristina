@@ -36,6 +36,7 @@ export default async function handler(
       s3_path: path,
       width,
       height,
+      photo_type: "anonymous",
       owner_name: "John Doe",
       ip: "111.111.111.111",
     },

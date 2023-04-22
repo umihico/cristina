@@ -8,12 +8,13 @@ export function MainStack({ stack, app }: StackContext) {
   const table = new Table(stack, "Record", {
     fields: {
       s3_path: "string",
+      photo_type: "string",
       owner_name: "string",
       ip: "string",
       width: "number",
       height: "number",
     },
-    primaryIndex: { partitionKey: "s3_path" },
+    primaryIndex: { partitionKey: "photo_type", sortKey: "s3_path" },
     cdk: {
       table: {
         tableName: `cristina-image-records-${app.stage}-${stack.account}`,
