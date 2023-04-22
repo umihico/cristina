@@ -51,7 +51,7 @@ export default async function handler(
 ) {
   const { photos, path } = await fetchPhotos({
     exclusiveStartKey: req.query.path
-      ? ({ s3_path: req.query.path } as Key)
+      ? ({ s3_path: req.query.path, photo_type: "anonymous" } as Key)
       : undefined,
   });
   res.status(200).send({ photos, path });
