@@ -22,9 +22,14 @@ import s from "./style.module.scss";
 type Props = {
   photos: Photo[];
   initialLoadEnabled: boolean;
+  displayInsertMockPhotoButton: boolean;
 };
 
-export default function App({ photos: initPhotos, initialLoadEnabled }: Props) {
+export default function App({
+  photos: initPhotos,
+  initialLoadEnabled,
+  displayInsertMockPhotoButton,
+}: Props) {
   const [loadEnabled, setLoadEnabled] = React.useState(initialLoadEnabled);
   const [minDisplayOrder, setMinDisplayOrder] = React.useState(0);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
@@ -78,7 +83,9 @@ export default function App({ photos: initPhotos, initialLoadEnabled }: Props) {
     <>
       {processing && <Loader></Loader>}
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
-        <InsertMockPhotoButton upload={upload}></InsertMockPhotoButton>
+        {displayInsertMockPhotoButton && (
+          <InsertMockPhotoButton upload={upload}></InsertMockPhotoButton>
+        )}
         <Image
           className="mx-auto"
           src="/assets/title.webp"
@@ -158,9 +165,11 @@ export default function App({ photos: initPhotos, initialLoadEnabled }: Props) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  const stage = String(process.env.STAGE);
+  const displayInsertMockPhotoButton = stage !== "prod";
   const { photos } = await fetchPhotos({});
   const initialLoadEnabled = photos.length >= limitPerPage;
   return {
-    props: { photos, initialLoadEnabled },
+    props: { photos, initialLoadEnabled, displayInsertMockPhotoButton },
   };
 };

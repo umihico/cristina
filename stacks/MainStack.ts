@@ -67,6 +67,7 @@ export function MainStack({ stack, app }: StackContext) {
     },
     environment: {
       // Pass the table details to our app
+      STAGE: app.stage,
       REGION: app.region,
       TABLE_NAME: dynamoTable.tableName,
       BUCKET_NAME:
