@@ -2,7 +2,7 @@ import { RemovalPolicy } from "aws-cdk-lib";
 import { HttpMethods } from "aws-cdk-lib/aws-s3";
 import { Bucket, NextjsSite, StackContext, Table } from "sst/constructs";
 
-export function ExampleStack({ stack, app }: StackContext) {
+export function MainStack({ stack, app }: StackContext) {
   // Add your first construct
   // Create the table
   const table = new Table(stack, "Record", {
