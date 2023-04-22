@@ -11,17 +11,16 @@ export function MainStack({ stack, app }: StackContext) {
   // Create the table
   const dynamoTable = new Table(stack, "Record", {
     fields: {
-      s3_path: "string",
-      photo_type: "string",
-      owner_name: "string",
-      ip: "string",
+      path: "string",
+      photoType: "string",
+      displayOrder: "number",
       width: "number",
       height: "number",
     },
-    primaryIndex: { partitionKey: "photo_type", sortKey: "s3_path" },
+    primaryIndex: { partitionKey: "photoType", sortKey: "displayOrder" },
     cdk: {
       table: {
-        tableName: `cristina-image-records-${app.stage}-${suffix}`,
+        tableName: `cristina-image-records-${app.stage}-${suffix}-v2`,
         removalPolicy:
           app.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       },

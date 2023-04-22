@@ -2,17 +2,21 @@ import { Key } from "aws-sdk/clients/dynamodb";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
 
+export const limitPerPage = 10;
+
 export type Photo = {
   src: string;
   width: number;
   height: number;
+  displayOrder: number;
 };
 
 const toParams = (exclusiveStartKey: Key | undefined) => {
   return {
     TableName: dynamoDbTableName,
-    Limit: 20, // lambdaの同時実行数は10なので、2回のフェッチで全件表示させる
+    Limit: limitPerPage,
     ExclusiveStartKey: exclusiveStartKey,
+    ScanIndexForward: false,
   };
 };
 
@@ -24,43 +28,45 @@ export const fetchPhotos = async ({
   exclusiveStartKey,
 }: Props): Promise<{
   photos: Photo[];
-  path: string | null;
 }> => {
   const params = toParams(exclusiveStartKey);
   const response = await dynamoDb().scan(params).promise();
   const photos = [
     ...(response.Items || []).map((item) => ({
-      src: `https://${process.env.IMAGE_DOMAIN}/${item.s3_path}`,
+      src: `https://${process.env.IMAGE_DOMAIN}/${item.path}`,
       width: item.width || 300,
       height: item.height || 300,
+      displayOrder: item.displayOrder,
     })),
-    // ...unsplashPhotos,
   ];
-  const path = (response.LastEvaluatedKey?.s3_path as string) || null;
-  return { photos, path };
+  return { photos };
 };
 
 export type PhotosResponseData = {
   photos: Photo[];
-  path: string | null;
 };
+
+const displayOrderQuery = "display_order";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<PhotosResponseData>
 ) {
-  const { photos, path } = await fetchPhotos({
-    exclusiveStartKey: req.query.path
-      ? ({ s3_path: req.query.path, photo_type: "anonymous" } as Key)
+  const { photos } = await fetchPhotos({
+    exclusiveStartKey: req.query[displayOrderQuery]
+      ? ({
+          displayOrder: parseInt(req.query[displayOrderQuery] as string),
+          photoType: "anonymous",
+        } as Key)
       : undefined,
   });
-  res.status(200).send({ photos, path });
+  res.status(200).send({ photos });
 }
 
 export const fetchPhotosByApi = async (
-  path: string | null
+  displayOrder: number
 ): Promise<PhotosResponseData> => {
-  return await fetch(`/api/photos?${path ? `path=${path}` : ""}`).then((x) =>
-    x.json()
-  );
+  return await fetch(
+    `/api/photos?${displayOrder ? `${displayOrderQuery}=${displayOrder}` : ""}`
+  ).then((x) => x.json());
 };
