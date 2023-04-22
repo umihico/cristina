@@ -5,7 +5,7 @@ import { Bucket, NextjsSite, StackContext, Table } from "sst/constructs";
 export function MainStack({ stack, app }: StackContext) {
   // Add your first construct
   // Create the table
-  const table = new Table(stack, "Record", {
+  const dynamoTable = new Table(stack, "Record", {
     fields: {
       s3_path: "string",
       photo_type: "string",
@@ -61,13 +61,13 @@ export function MainStack({ stack, app }: StackContext) {
     environment: {
       // Pass the table details to our app
       REGION: app.region,
-      TABLE_NAME: table.tableName,
+      TABLE_NAME: dynamoTable.tableName,
       BUCKET_NAME: imageBucket.bucketName,
     },
   });
 
   // Allow the Next.js API to access the table
-  site.attachPermissions([table]);
+  site.attachPermissions([dynamoTable]);
   site.attachPermissions([imageBucket]);
 
   // Show the site URL in the output
