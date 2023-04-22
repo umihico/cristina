@@ -35,6 +35,13 @@ export function MainStack({ stack, app }: StackContext) {
   const photoCdn = new StaticSite(stack, "images", {
     path: "images",
     purgeFiles: false, // !!! NEVER SET THIS TO TRUE IN PRODUCTION. YOU WILL DELETE YOUR ALL PHOTOS !!!
+    fileOptions: [
+      {
+        exclude: "*",
+        include: ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp"],
+        cacheControl: "max-age=31536000,public,immutable",
+      },
+    ],
     cdk: {
       distribution: {
         comment: "images",
