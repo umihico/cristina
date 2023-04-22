@@ -1,6 +1,6 @@
 import { RemovalPolicy } from "aws-cdk-lib";
 import { HttpMethods } from "aws-cdk-lib/aws-s3";
-import { Bucket, NextjsSite, StackContext, Table } from "sst/constructs";
+import { NextjsSite, StackContext, StaticSite, Table } from "sst/constructs";
 
 export function MainStack({ stack, app }: StackContext) {
   // openssl rand -hex 4
@@ -28,33 +28,30 @@ export function MainStack({ stack, app }: StackContext) {
     },
   });
 
-  const imageBucket = new Bucket(stack, "ImageBucket", {
+  const domain = `cristina${
+    app.stage === "prod" ? "" : "-" + app.stage
+  }.umihi.co`;
+
+  const photoCdn = new StaticSite(stack, "images", {
+    path: "images",
+    purgeFiles: false, // !!! NEVER SET THIS TO TRUE IN PRODUCTION. YOU WILL DELETE YOUR ALL PHOTOS !!!
     cdk: {
+      distribution: {
+        comment: "images",
+      },
       bucket: {
-        publicReadAccess: true,
+        bucketName: `cristina-image-bucket-${app.stage}-${suffix}`,
         cors: [
           {
             allowedHeaders: ["*"],
-            allowedMethods: [
-              "PUT",
-              "POST",
-              "GET",
-              "DELETE",
-              "HEAD",
-            ] as HttpMethods[],
+            allowedMethods: ["PUT", "POST", "GET", "HEAD"] as HttpMethods[],
             allowedOrigins: ["*"],
           },
         ],
-        bucketName: `cristina-image-bucket-${app.stage}-${suffix}`,
-        removalPolicy:
-          app.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       },
     },
   });
 
-  const domain = `cristina${
-    app.stage === "prod" ? "" : "-" + app.stage
-  }.umihi.co`;
   // Create a Next.js site
   const site = new NextjsSite(stack, "Site", {
     path: "frontend",
@@ -66,13 +63,20 @@ export function MainStack({ stack, app }: StackContext) {
       // Pass the table details to our app
       REGION: app.region,
       TABLE_NAME: dynamoTable.tableName,
-      BUCKET_NAME: imageBucket.bucketName,
+      BUCKET_NAME:
+        photoCdn.cdk?.bucket.bucketName ||
+        (process.env.DEV_IMAGE_BUCKET_NAME as string),
+      IMAGE_DOMAIN:
+        photoCdn.cdk?.distribution.domainName ||
+        (process.env.DEV_CLOUDFRONT_DOMAIN as string),
     },
   });
 
   // Allow the Next.js API to access the table
   site.attachPermissions([dynamoTable]);
-  site.attachPermissions([imageBucket]);
+  if (photoCdn.cdk) {
+    site.attachPermissions([photoCdn.cdk.bucket]);
+  }
 
   // Show the site URL in the output
   stack.addOutputs({

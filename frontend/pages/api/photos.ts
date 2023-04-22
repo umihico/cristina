@@ -1,7 +1,6 @@
 import { Key } from "aws-sdk/clients/dynamodb";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
-import { s3Host } from "../../lib/aws/s3";
 
 export type Photo = {
   src: string;
@@ -31,7 +30,7 @@ export const fetchPhotos = async ({
   const response = await dynamoDb().scan(params).promise();
   const photos = [
     ...(response.Items || []).map((item) => ({
-      src: `https://${s3Host}/${item.s3_path}`,
+      src: `https://${process.env.IMAGE_DOMAIN}/${item.s3_path}`,
       width: item.width || 300,
       height: item.height || 300,
     })),
