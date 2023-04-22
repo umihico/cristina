@@ -5,7 +5,7 @@ export default {
   config(_input) {
     return {
       name: "cristina",
-      region: "us-east-1",
+      region: process.env.AWS_REGION,
     };
   },
   stacks(app) {
