@@ -33,9 +33,7 @@ export default async function handler(
 ) {
   const s3Params = {
     Bucket: s3BucketName,
-    Key: `images/${
-      req.query.lastModified || new Date().valueOf()
-    }-${new Date().valueOf()}.${req.query.fileExtension}`,
+    Key: `images/${new Date().valueOf()}.${req.query.fileExtension}`,
     Expires: 60,
     ContentType: req.query.contentType,
   };

@@ -1,14 +1,14 @@
 import { SSTConfig } from "sst";
-import { ExampleStack } from "./stacks/ExampleStack";
+import { MainStack } from "./stacks/MainStack";
 
 export default {
-  config(_input) {
+  config(input) {
     return {
       name: "cristina",
-      region: "us-east-1",
+      region: process.env.AWS_REGION,
     };
   },
   stacks(app) {
-    app.stack(ExampleStack);
+    app.stack(MainStack);
   }
 } satisfies SSTConfig;
