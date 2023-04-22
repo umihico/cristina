@@ -9,10 +9,12 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
       AWS_REGION: ${AWS_DEV_REGION}
+      DEV_IMAGE_BUCKET_NAME: ${DEV_IMAGE_BUCKET_NAME}
+      DEV_CLOUDFRONT_DOMAIN: ${DEV_CLOUDFRONT_DOMAIN}
     volumes:
       - .:/app
       - /app/node_modules
-    command: ["npx", "sst", "dev"]
+    command: "npx sst dev --stage local"
   nextjs:
     build: .
     environment:

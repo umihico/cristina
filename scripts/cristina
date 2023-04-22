@@ -13,10 +13,10 @@ docker-compose up --build
 ;;
 ( destroy-dev )
 docker-compose down -v
-docker-compose run --rm sst npx sst remove --stage umihico --region $AWS_DEV_REGION
+docker-compose run --rm sst npx sst remove --stage dev --region $AWS_DEV_REGION
 ;;
 ( deploy-dev )
-docker-compose run --rm sst npx sst deploy --stage umihico  --region $AWS_DEV_REGION
+docker-compose run --rm sst npx sst deploy --stage dev  --region $AWS_DEV_REGION
 ;;
 esac
 

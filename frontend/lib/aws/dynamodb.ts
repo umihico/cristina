@@ -6,4 +6,4 @@ export const dynamoDb = () => {
 };
 
 export const dynamoDbTableName =
-  process.env.TABLE_NAME || "cristina-umihico-Record";
+  process.env.TABLE_NAME || "cristina-dev-Record";
