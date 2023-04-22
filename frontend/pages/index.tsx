@@ -47,7 +47,7 @@ export default function App({
         },
       };
       await fetch(signedUrl, options);
-      const path = signedUrl.split(".s3.amazonaws.com/")[1].split("?")[0];
+      const path = signedUrl.split(".amazonaws.com/")[1].split("?")[0];
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
 
