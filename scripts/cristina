@@ -16,7 +16,10 @@ docker-compose down -v
 docker-compose run --rm sst npx sst remove --stage dev --region $AWS_DEV_REGION
 ;;
 ( deploy-dev )
-docker-compose run --rm sst npx sst deploy --stage dev  --region $AWS_DEV_REGION
+docker-compose run --rm sst npx sst deploy --stage dev --region $AWS_DEV_REGION
+;;
+( deploy-prod )
+docker-compose run --rm sst npx sst deploy --stage prod --region $AWS_PROD_REGION
 ;;
 esac
 
