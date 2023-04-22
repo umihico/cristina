@@ -33,12 +33,11 @@ export default async function handler(
   const params = {
     TableName: dynamoDbTableName,
     Item: {
-      s3_path: path,
+      path: path,
       width,
       height,
-      photo_type: "anonymous",
-      owner_name: "John Doe",
-      ip: "111.111.111.111",
+      photoType: "anonymous",
+      displayOrder: 2000000000000 - new Date().valueOf(),
     },
   };
   await dynamoDb().put(params).promise();

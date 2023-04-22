@@ -1,6 +1,6 @@
 import { GetServerSideProps } from "next";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect } from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
 import ImageUploading, { ImageListType } from "react-images-uploading";
@@ -10,23 +10,28 @@ import { Loader } from "../components/loader";
 import { InsertMockPhotoButton } from "../components/mock";
 import { extractDimensions } from "../lib/image";
 import { requestInsertion } from "./api/dynamo";
-import { Photo, fetchPhotos, fetchPhotosByApi } from "./api/photos";
+import {
+  Photo,
+  fetchPhotos,
+  fetchPhotosByApi,
+  limitPerPage,
+} from "./api/photos";
 import { requestSignedUrl } from "./api/sign";
 import s from "./style.module.scss";
 
 type Props = {
   photos: Photo[];
-  lastEvaluatedPath: string;
+  initialLoadEnabled: boolean;
 };
 
-export default function App({
-  photos: initPhotos,
-  lastEvaluatedPath: initLastEvaluatedPath,
-}: Props) {
-  const [lastEvaluatedPath, setLastEvaluatedPath] = React.useState<
-    string | null
-  >(initLastEvaluatedPath);
+export default function App({ photos: initPhotos, initialLoadEnabled }: Props) {
+  const [loadEnabled, setLoadEnabled] = React.useState(initialLoadEnabled);
+  const [minDisplayOrder, setMinDisplayOrder] = React.useState(0);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
+  useEffect(() => {
+    if (photos.length === 0) return;
+    setMinDisplayOrder(photos[photos.length - 1].displayOrder);
+  }, [photos]);
   const [images, setImages] = React.useState<ImageListType>([]);
   const [processing, setProcessing] = React.useState(false);
   const upload = async (file: File) => {
@@ -51,7 +56,7 @@ export default function App({
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
 
-      setPhotos((await fetchPhotosByApi(lastEvaluatedPath)).photos);
+      setPhotos((await fetchPhotosByApi(0)).photos);
     } catch (error) {
       alert(error);
       throw error;
@@ -61,11 +66,13 @@ export default function App({
     }
   };
   const loadMoreAlbum = async () => {
-    if (lastEvaluatedPath === null) return;
+    if (minDisplayOrder === null) return;
 
-    const { photos, path } = await fetchPhotosByApi(lastEvaluatedPath);
-    setLastEvaluatedPath(path as string);
-    setPhotos((prev) => [...prev, ...photos]);
+    const { photos: olderPhotos } = await fetchPhotosByApi(minDisplayOrder);
+    if (olderPhotos.length < limitPerPage) {
+      setLoadEnabled(false);
+    }
+    setPhotos((prev) => [...prev, ...olderPhotos]);
   };
   return (
     <>
@@ -84,7 +91,7 @@ export default function App({
         </div>
         <Album photos={photos}></Album>
         <div className="flex justify-center items-center w-full h-16 my-4">
-          {lastEvaluatedPath && (
+          {loadEnabled && (
             <button
               className="w-1/2 h-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl md:text-3xl font-bold"
               onClick={loadMoreAlbum}
@@ -151,8 +158,9 @@ export default function App({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { photos, path } = await fetchPhotos({});
+  const { photos } = await fetchPhotos({});
+  const initialLoadEnabled = photos.length >= limitPerPage;
   return {
-    props: { photos, lastEvaluatedPath: path },
+    props: { photos, initialLoadEnabled },
   };
 };

@@ -23,5 +23,9 @@ export const InsertMockPhotoButton = ({ upload }: Props) => {
     await new Promise((resolve) => setTimeout(resolve, 300)); // useState が反映されるまで待つ
     await upload(file);
   };
-  return <button onClick={insertMockPhoto}>insertMockPhoto</button>;
+  return (
+    <button className="m-2 p-2 border" onClick={insertMockPhoto}>
+      insertMockPhoto
+    </button>
+  );
 };
