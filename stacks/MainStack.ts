@@ -3,6 +3,10 @@ import { HttpMethods } from "aws-cdk-lib/aws-s3";
 import { Bucket, NextjsSite, StackContext, Table } from "sst/constructs";
 
 export function MainStack({ stack, app }: StackContext) {
+  // openssl rand -hex 4
+  // change direnv values if you change this
+  const suffix = "38344208";
+
   // Add your first construct
   // Create the table
   const dynamoTable = new Table(stack, "Record", {
@@ -17,7 +21,7 @@ export function MainStack({ stack, app }: StackContext) {
     primaryIndex: { partitionKey: "photo_type", sortKey: "s3_path" },
     cdk: {
       table: {
-        tableName: `cristina-image-records-${app.stage}-${stack.account}`,
+        tableName: `cristina-image-records-${app.stage}-${suffix}`,
         removalPolicy:
           app.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       },
@@ -41,7 +45,7 @@ export function MainStack({ stack, app }: StackContext) {
             allowedOrigins: ["*"],
           },
         ],
-        bucketName: `cristina-image-bucket-${app.stage}-${stack.account}`,
+        bucketName: `cristina-image-bucket-${app.stage}-${suffix}`,
         removalPolicy:
           app.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       },
