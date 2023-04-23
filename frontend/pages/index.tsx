@@ -3,10 +3,13 @@ import Image from "next/image";
 import React, { useEffect } from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
-import ImageUploading, { ImageListType } from "react-images-uploading";
+import ImageUploading, {
+  ImageListType,
+  ImageType,
+} from "react-images-uploading";
 import "yet-another-react-lightbox/styles.css";
+import { LoadingEffect } from "../components/LoadingEffect";
 import { Album } from "../components/album";
-import { Loader } from "../components/loader";
 import { InsertMockPhotoButton } from "../components/mock";
 import { extractDimensions } from "../lib/image";
 import { requestInsertion } from "./api/dynamo";
@@ -37,42 +40,63 @@ export default function App({
     if (photos.length === 0) return;
     setMinDisplayOrder(photos[photos.length - 1].displayOrder);
   }, [photos]);
+  const [tasks, setTasks] = React.useState<ImageListType>([]);
+  const [currentTask, setCurrentTask] = React.useState<ImageType | null>(null);
   const [images, setImages] = React.useState<ImageListType>([]);
-  const [processing, setProcessing] = React.useState(false);
-  const upload = async (file: File) => {
-    setProcessing(true);
-    try {
-      const response = await requestSignedUrl({
-        fileExtension:
-          file.name.split(".").pop() || file.type.split("/").pop() || "png",
-        contentType: file.type,
-        lastModified: String(file.lastModified),
-      });
-      const signedUrl = response.signedUrl;
-      const options = {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
-      };
-      await fetch(signedUrl, options);
-      const path = signedUrl.split(".amazonaws.com/")[1].split("?")[0];
-      const { width, height } = await extractDimensions(file);
-      await requestInsertion({ path, width, height });
 
-      const latestPhotos = (await fetchPhotosByApi(0)).photos;
-      setPhotos(latestPhotos);
-      if (latestPhotos.length >= limitPerPage) {
-        setLoadEnabled(true);
+  useEffect(() => {
+    (async () => {
+      try {
+        if (tasks.length === 0) {
+          const latestPhotos = (await fetchPhotosByApi(0)).photos;
+          setPhotos(latestPhotos);
+          setCurrentTask(null);
+          if (latestPhotos.length >= limitPerPage) {
+            setLoadEnabled(true);
+          }
+          setImages([]);
+          return;
+        }
+
+        setPhotos([]);
+
+        const task = tasks[0];
+        setCurrentTask(task);
+        const file = task?.file;
+
+        if (file !== undefined) {
+          await uploadEach(file);
+        }
+        const restTasks = tasks.slice(1);
+        setTasks(restTasks);
+      } catch (error) {
+        setTasks([]);
+        alert(error);
+        setCurrentTask(null);
+        throw error;
       }
-    } catch (error) {
-      alert(error);
-      throw error;
-    } finally {
-      setImages([]);
-      setProcessing(false);
-    }
+    })();
+  }, [tasks]);
+
+  const uploadEach = async (file: File) => {
+    const response = await requestSignedUrl({
+      fileExtension:
+        file.name.split(".").pop() || file.type.split("/").pop() || "png",
+      contentType: file.type,
+      lastModified: String(file.lastModified),
+    });
+    const signedUrl = response.signedUrl;
+    const options = {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    };
+    await fetch(signedUrl, options);
+    const path = signedUrl.split(".amazonaws.com/")[1].split("?")[0];
+    const { width, height } = await extractDimensions(file);
+    await requestInsertion({ path, width, height });
   };
   const loadMoreAlbum = async () => {
     if (minDisplayOrder === null) return;
@@ -85,10 +109,12 @@ export default function App({
   };
   return (
     <>
-      {processing && <Loader></Loader>}
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
         {displayInsertMockPhotoButton && (
-          <InsertMockPhotoButton upload={upload}></InsertMockPhotoButton>
+          <InsertMockPhotoButton
+            uploadEach={uploadEach}
+            setImages={setImages}
+          ></InsertMockPhotoButton>
         )}
         <Image
           className="mx-auto"
@@ -112,7 +138,7 @@ export default function App({
           )}
         </div>
         <ImageUploading
-          multiple
+          multiple={true}
           value={images}
           onChange={(
             imageList: ImageListType,
@@ -121,7 +147,7 @@ export default function App({
             // data for submit
             setImages(imageList);
           }}
-          maxNumber={1}
+          maxNumber={99}
           dataURLKey="data_url"
         >
           {({ onImageUpload }) => (
@@ -135,27 +161,63 @@ export default function App({
         </ImageUploading>
         {images.length > 0 && (
           <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 z-10 flex items-center justify-center">
-            <div className="w-11/12 flex items-center justify-center">
-              <img
-                className="object-contain w-full max-h-96 max-w-sm"
-                src={images[0]["data_url"]}
-              />
+            <div className="w-11/12 flex flex-wrap items-center justify-center">
+              {images.map((image, index) => {
+                const width =
+                  window.innerWidth ||
+                  document.documentElement.clientWidth ||
+                  document.body.clientWidth;
+
+                const height =
+                  window.innerHeight ||
+                  document.documentElement.clientHeight ||
+                  document.body.clientHeight;
+
+                const size = Math.round(
+                  (Math.min(width, height) / Math.sqrt(images.length)) * 0.8
+                );
+
+                const isUploading =
+                  currentTask?.file && currentTask?.file === image.file;
+                return (
+                  <div
+                    key={index}
+                    className="m-1 relative"
+                    style={{
+                      width: `${size}px`,
+                      height: `${size}px`,
+                    }}
+                  >
+                    {isUploading && (
+                      <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center z-50">
+                        <LoadingEffect></LoadingEffect>
+                      </div>
+                    )}
+                    <img
+                      src={image["data_url"]}
+                      className={`object-contain h-full w-full ${
+                        isUploading ? "grayscale" : ""
+                      }`}
+                    />
+                  </div>
+                );
+              })}
             </div>
             <div className="fixed bottom-0 left-0 w-full justify-center flex">
               <div className="items-center flex w-full max-w-lg">
                 <button
+                  disabled={tasks.length > 0}
                   onClick={() => setImages([])}
-                  className={`w-1/2 h-12 m-4 rounded-lg border-2 border-white bg-red-500 text-white flex justify-center items-center`}
+                  className={`w-1/2 h-12 m-4 rounded-lg border-2 border-white bg-gray-500 text-white flex justify-center items-center`}
                 >
                   <FaTimes />
                 </button>
                 <button
-                  onClick={() => {
-                    const file = images[0]?.file;
-                    if (file === undefined) return;
-                    upload(file);
+                  disabled={tasks.length > 0}
+                  onClick={async () => {
+                    setTasks(images);
                   }}
-                  className={`w-1/2 h-12 m-4 rounded-lg border-2 border-white bg-green-500 text-white flex justify-center items-center`}
+                  className={`w-1/2 h-12 m-4 rounded-lg border-2 border-white bg-green-500 text-white flex justify-center items-center disabled:bg-gray-500`}
                 >
                   <FaCheck />
                 </button>
