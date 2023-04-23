@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { RenderPhotoProps } from "react-photo-album";
-import { placeholderSvg } from "./image";
 
 export default function NextJsImage({
   imageProps: { src: initialSrc, alt, title, sizes, className, onClick, style },
@@ -17,7 +16,6 @@ export default function NextJsImage({
    * @returns
    */
   const retryLaterIfConcurrentInvocationLimitExceeded = (e: any) => {
-    setSrc(placeholderSvg);
     if (errorCount > 10) return;
     setTimeout(() => {
       setSrc(initialSrc);
