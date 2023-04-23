@@ -2,7 +2,7 @@ import { Key } from "aws-sdk/clients/dynamodb";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
 
-export const limitPerPage = 10;
+export const limitPerPage = 30;
 
 export type Photo = {
   src: string;
