@@ -61,7 +61,11 @@ export default function App({
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
 
-      setPhotos((await fetchPhotosByApi(0)).photos);
+      const latestPhotos = (await fetchPhotosByApi(0)).photos;
+      setPhotos(latestPhotos);
+      if (latestPhotos.length >= limitPerPage) {
+        setLoadEnabled(true);
+      }
     } catch (error) {
       alert(error);
       throw error;
