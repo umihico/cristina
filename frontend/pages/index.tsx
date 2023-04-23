@@ -80,8 +80,11 @@ export default function App({
 
   const uploadEach = async (file: File) => {
     const response = await requestSignedUrl({
-      fileExtension:
-        file.name.split(".").pop() || file.type.split("/").pop() || "png",
+      fileExtension: (
+        file.name.split(".").pop() ||
+        file.type.split("/").pop() ||
+        "png"
+      ).toLowerCase(),
       contentType: file.type,
       lastModified: String(file.lastModified),
     });
