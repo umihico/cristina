@@ -1,4 +1,10 @@
-import { RemovalPolicy } from "aws-cdk-lib";
+import { Duration, RemovalPolicy } from "aws-cdk-lib";
+import {
+  CacheCookieBehavior,
+  CacheHeaderBehavior,
+  CachePolicy,
+  CacheQueryStringBehavior,
+} from "aws-cdk-lib/aws-cloudfront";
 import { HttpMethods } from "aws-cdk-lib/aws-s3";
 import { NextjsSite, StackContext, StaticSite, Table } from "sst/constructs";
 
@@ -56,6 +62,19 @@ export function MainStack({ stack, app }: StackContext) {
         ],
       },
     },
+  });
+
+  // set and replace this cache policy with current "/_next/image*" cache policy BY HAND in the console after deploy
+  const imageCachePolicy = new CachePolicy(stack, "imageCachePolicy", {
+    cachePolicyName: `imageCachePolicy-${app.stage}-${suffix}`,
+    defaultTtl: Duration.days(365),
+    minTtl: Duration.days(365),
+    maxTtl: Duration.days(365),
+    enableAcceptEncodingGzip: true,
+    enableAcceptEncodingBrotli: true,
+    queryStringBehavior: CacheQueryStringBehavior.all(),
+    cookieBehavior: CacheCookieBehavior.none(),
+    headerBehavior: CacheHeaderBehavior.none(),
   });
 
   // Create a Next.js site

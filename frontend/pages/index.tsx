@@ -61,7 +61,11 @@ export default function App({
       const { width, height } = await extractDimensions(file);
       await requestInsertion({ path, width, height });
 
-      setPhotos((await fetchPhotosByApi(0)).photos);
+      const latestPhotos = (await fetchPhotosByApi(0)).photos;
+      setPhotos(latestPhotos);
+      if (latestPhotos.length >= limitPerPage) {
+        setLoadEnabled(true);
+      }
     } catch (error) {
       alert(error);
       throw error;
@@ -88,7 +92,7 @@ export default function App({
         )}
         <Image
           className="mx-auto"
-          src="/assets/title.webp"
+          src="/assets/title.webp.jpg" // 背景透過のオリジナルwebpとcfのカスタムキャッシュポリシーを同時に使うと、なぜか背景が黒になってしまったので、jpgに変換して使う
           alt="header"
           height={256 * 0.8}
           width={652 * 0.8}
