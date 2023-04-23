@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { useState } from "react";
+import { MdPlayCircle } from "react-icons/md";
 import type { RenderPhotoProps } from "react-photo-album";
+import { hasMovieExtension } from "./video";
 
 export default function NextJsImage({
   imageProps: { src: initialSrc, alt, title, sizes, className, onClick, style },
@@ -23,21 +25,35 @@ export default function NextJsImage({
     setErrorCount((prev) => prev + 1);
   };
 
+  const isMovie = hasMovieExtension(src);
+
   return (
     <div style={wrapperStyle}>
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <Image
-          fill
-          loading="eager"
-          src={src}
-          alt={alt}
-          title={title}
-          sizes={sizes}
-          className={className}
-          onClick={onClick}
-          quality={25}
-          onError={retryLaterIfConcurrentInvocationLimitExceeded}
-        />
+        {isMovie ? (
+          <div className="relative w-full h-full">
+            <div
+              onClick={onClick}
+              className="absolute top-0 left-0 w-full h-full flex justify-center items-center cursor-pointer z-10"
+            >
+              <MdPlayCircle className="color-black w-12 h-12 bg-white p-px rounded-full"></MdPlayCircle>
+            </div>
+            <video src={src} className="w-full h-full"></video>
+          </div>
+        ) : (
+          <Image
+            fill
+            loading="eager"
+            src={src}
+            alt={alt}
+            title={title}
+            sizes={sizes}
+            className={className}
+            onClick={onClick}
+            quality={25}
+            onError={retryLaterIfConcurrentInvocationLimitExceeded}
+          />
+        )}
       </div>
     </div>
   );

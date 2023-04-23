@@ -3,15 +3,12 @@ import Image from "next/image";
 import React, { useEffect } from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
-import ImageUploading, {
-  ImageListType,
-  ImageType,
-} from "react-images-uploading";
 import "yet-another-react-lightbox/styles.css";
 import { LoadingEffect } from "../components/LoadingEffect";
 import { Album } from "../components/album";
 import { InsertMockPhotoButton } from "../components/mock";
-import { extractDimensions } from "../lib/image";
+import { extractImageDimensions } from "../lib/image";
+import { extractVideoDimensions } from "../lib/video";
 import { requestInsertion } from "./api/dynamo";
 import {
   Photo,
@@ -28,6 +25,12 @@ type Props = {
   displayInsertMockPhotoButton: boolean;
 };
 
+export type ImageType = {
+  file: File;
+  dataURL: string;
+  isMovie: boolean;
+};
+
 export default function App({
   photos: initPhotos,
   initialLoadEnabled,
@@ -40,9 +43,9 @@ export default function App({
     if (photos.length === 0) return;
     setMinDisplayOrder(photos[photos.length - 1].displayOrder);
   }, [photos]);
-  const [tasks, setTasks] = React.useState<ImageListType>([]);
+  const [tasks, setTasks] = React.useState<ImageType[]>([]);
   const [currentTask, setCurrentTask] = React.useState<ImageType | null>(null);
-  const [images, setImages] = React.useState<ImageListType>([]);
+  const [images, setImages] = React.useState<ImageType[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -62,11 +65,8 @@ export default function App({
 
         const task = tasks[0];
         setCurrentTask(task);
-        const file = task?.file;
 
-        if (file !== undefined) {
-          await uploadEach(file);
-        }
+        await uploadEach(task);
         const restTasks = tasks.slice(1);
         setTasks(restTasks);
       } catch (error) {
@@ -78,7 +78,8 @@ export default function App({
     })();
   }, [tasks]);
 
-  const uploadEach = async (file: File) => {
+  const uploadEach = async (task: ImageType) => {
+    const file = task.file;
     const response = await requestSignedUrl({
       fileExtension: (
         file.name.split(".").pop() ||
@@ -98,9 +99,12 @@ export default function App({
     };
     await fetch(signedUrl, options);
     const path = signedUrl.split(".amazonaws.com/")[1].split("?")[0];
-    const { width, height } = await extractDimensions(file);
+    const { width, height } = task.isMovie
+      ? await extractVideoDimensions(file)
+      : await extractImageDimensions(file);
     await requestInsertion({ path, width, height });
   };
+
   const loadMoreAlbum = async () => {
     if (minDisplayOrder === null) return;
 
@@ -140,28 +144,35 @@ export default function App({
             </button>
           )}
         </div>
-        <ImageUploading
-          multiple={true}
-          value={images}
-          onChange={(
-            imageList: ImageListType,
-            addUpdateIndex: number[] | undefined
-          ) => {
-            // data for submit
-            setImages(imageList);
-          }}
-          maxNumber={99}
-          dataURLKey="data_url"
-        >
-          {({ onImageUpload }) => (
-            <div>
-              <MdOutlineAdd
-                onClick={onImageUpload}
-                className={`${s.MdOutlineAdd} cursor-pointer fixed h-16 w-16 md:h-20 md:w-20 bottom-8 right-8`}
-              ></MdOutlineAdd>
-            </div>
-          )}
-        </ImageUploading>
+        <label aria-label="add image">
+          <MdOutlineAdd
+            className={`${s.MdOutlineAdd} cursor-pointer fixed h-16 w-16 md:h-20 md:w-20 bottom-8 right-8`}
+          ></MdOutlineAdd>
+          <input
+            type="file"
+            className="hidden"
+            accept="image/*,video/*"
+            multiple
+            onChange={(e) => {
+              const rawFiles = e.target.files;
+              if (rawFiles === null) return;
+              const files = Array.from(Array(rawFiles.length).keys())
+                .map((i) => {
+                  return rawFiles.item(i);
+                })
+                .filter((file): file is File => file !== null);
+              setImages(
+                files.map((file) => {
+                  return {
+                    file,
+                    isMovie: file.type.startsWith("video/"),
+                    dataURL: URL.createObjectURL(file),
+                  };
+                })
+              );
+            }}
+          ></input>
+        </label>
         {images.length > 0 && (
           <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 z-10 flex items-center justify-center">
             <div className="w-11/12 flex flex-wrap items-center justify-center">
@@ -196,12 +207,21 @@ export default function App({
                         <LoadingEffect></LoadingEffect>
                       </div>
                     )}
-                    <img
-                      src={image["data_url"]}
-                      className={`object-contain h-full w-full ${
-                        isUploading ? "grayscale" : ""
-                      }`}
-                    />
+                    {image.file.type.startsWith("image") ? (
+                      <img
+                        src={image.dataURL}
+                        className={`object-contain h-full w-full ${
+                          isUploading ? "grayscale" : ""
+                        }`}
+                      />
+                    ) : (
+                      <video
+                        src={image.dataURL}
+                        className={`object-contain h-full w-full ${
+                          isUploading ? "grayscale" : ""
+                        }`}
+                      ></video>
+                    )}
                   </div>
                 );
               })}

@@ -1,9 +1,9 @@
 import { Dispatch, SetStateAction } from "react";
-import { ImageListType } from "react-images-uploading";
+import { ImageType } from "../pages";
 
 type Props = {
-  uploadEach: (file: File) => Promise<void>;
-  setImages: Dispatch<SetStateAction<ImageListType>>;
+  uploadEach: (image: ImageType) => Promise<void>;
+  setImages: Dispatch<SetStateAction<ImageType[]>>;
 };
 
 const generateMockPhotoUrl = () => {
@@ -25,8 +25,9 @@ const mockImage = async () => {
   const blob = await response.blob();
   const file = new File([blob], "image.jpg", { type: blob.type });
   return {
-    data_url: url,
+    dataURL: url,
     file,
+    isMovie: false,
   };
 };
 
@@ -36,7 +37,12 @@ export const InsertMockPhotoButton = ({ uploadEach, setImages }: Props) => {
     const blob = await response.blob();
     const file = new File([blob], "image.jpg", { type: blob.type });
     await new Promise((resolve) => setTimeout(resolve, 300)); // useState が反映されるまで待つ
-    await uploadEach(file);
+    const image = {
+      file,
+      dataURL: URL.createObjectURL(file),
+      isMovie: false,
+    };
+    await uploadEach(image);
   };
 
   const insertMockImages = async () => {

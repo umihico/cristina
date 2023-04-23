@@ -1,9 +1,11 @@
-type Dimensions = {
+export type Dimensions = {
   width: number;
   height: number;
 };
 
-export const extractDimensions = async (file: File): Promise<Dimensions> => {
+export const extractImageDimensions = async (
+  file: File
+): Promise<Dimensions> => {
   return new Promise((resolve) => {
     try {
       const image = new Image();
