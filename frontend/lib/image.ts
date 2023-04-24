@@ -6,18 +6,27 @@ export type Dimensions = {
 export const extractImageDimensions = async (
   file: File
 ): Promise<Dimensions> => {
-  return new Promise((resolve) => {
-    try {
-      const image = new Image();
-      image.src = URL.createObjectURL(file);
-      image.onload = () => {
-        resolve({ width: image.width, height: image.height });
-      };
-    } catch (error) {
-      console.error(error);
-      resolve({ width: 300, height: 300 });
-    }
-  });
+  return await Promise.race([
+    new Promise((resolve) => {
+      try {
+        const movie = new Audio();
+        movie.preload = "metadata";
+        const image = new Image();
+        image.src = URL.createObjectURL(file);
+        image.onload = () => {
+          resolve({ width: image.width, height: image.height });
+        };
+      } catch (error) {
+        console.error(error);
+        resolve({ width: 300, height: 300 });
+      }
+    }) as Promise<Dimensions>,
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ width: 300, height: 300 });
+      }, 3000);
+    }) as Promise<Dimensions>,
+  ]);
 };
 
 // https://codesandbox.io/s/github/igordanchenko/react-photo-album/tree/main/examples/sortable-gallery?file=/src/photos.ts:0-1798
