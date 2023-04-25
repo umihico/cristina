@@ -45,7 +45,7 @@ export default function NextJsImage({
       ) : (
         <div className="relative w-full h-full">
           {showLoading && (
-            <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center cursor-pointer z-10">
+            <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center cursor-pointer z-10 bg-gray-200">
               <LoadingEffect></LoadingEffect>
             </div>
           )}
