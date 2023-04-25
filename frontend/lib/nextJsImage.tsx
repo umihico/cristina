@@ -21,10 +21,10 @@ export default function NextJsImage({
    * @returns
    */
   const retryLaterIfConcurrentInvocationLimitExceeded = (e: any) => {
-    if (errorCount > 10) return;
+    setSrc("");
     setTimeout(() => {
       setSrc(initialSrc);
-    }, Math.random() * 200 * errorCount);
+    }, Math.random() * 100 * errorCount * errorCount);
     setErrorCount((prev) => prev + 1);
   };
 
