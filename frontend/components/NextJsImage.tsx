@@ -5,6 +5,7 @@ import {
   isImageSlide,
   useLightboxProps,
 } from "yet-another-react-lightbox/core";
+import { hasMovieExtension } from "../lib/video";
 
 // not sure this type is right
 type Props = RenderSlideProps & {
@@ -26,17 +27,24 @@ export default function NextJsImage({ slide, rect }: Props) {
         Math.min(rect.height, (rect.width / slide.width!) * slide.height!)
       )
     : rect.height;
+
+  const isMovie = hasMovieExtension(slide.src);
+
   return (
     <div style={{ position: "relative", width, height }}>
-      <Image
-        fill
-        alt=""
-        src={slide.src}
-        loading="eager"
-        draggable={false}
-        style={{ objectFit: cover ? "cover" : "contain" }}
-        sizes={`${Math.ceil((width / window.innerWidth) * 100)}vw`}
-      />
+      {isMovie ? (
+        <video src={slide.src} className="w-full h-full" controls></video>
+      ) : (
+        <Image
+          fill
+          alt=""
+          src={slide.src}
+          loading="eager"
+          draggable={false}
+          style={{ objectFit: cover ? "cover" : "contain" }}
+          sizes={`${Math.ceil((width / window.innerWidth) * 100)}vw`}
+        />
+      )}
     </div>
   );
 }

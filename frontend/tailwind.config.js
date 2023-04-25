@@ -12,4 +12,15 @@ module.exports = {
     extend: {},
   },
   plugins: [],
+  safelist: [
+    ...[
+      // <MdPlayCircle className="color-black w-12 h-12 bg-white p-px rounded-full"></MdPlayCircle>
+      "color-black",
+      "w-12",
+      "h-12",
+      "bg-white",
+      "p-px",
+      "rounded-full",
+    ],
+  ],
 };
