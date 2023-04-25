@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { isMobile } from "react-device-detect";
 import { MdPlayCircle } from "react-icons/md";
 import type { RenderPhotoProps } from "react-photo-album";
 import { LoadingEffect } from "../components/LoadingEffect";
@@ -12,6 +13,7 @@ export default function NextJsImage({
   const [showLoading, setShowLoading] = useState(true);
   const [src, setSrc] = useState(initialSrc);
   const [errorCount, setErrorCount] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   /**
    * To avoid 429 (The rate limit is 10 requests per second...)
@@ -39,7 +41,17 @@ export default function NextJsImage({
           >
             <MdPlayCircle className="color-black w-12 h-12 bg-white p-px rounded-full"></MdPlayCircle>
           </div>
-          <video src={src} className="w-full h-full"></video>
+          <video
+            ref={videoRef}
+            autoPlay={isMobile} // without autoPlay, iOS won't show even preview somehow
+            muted
+            onTimeUpdate={() =>
+              // pause immediately to avoid auto play, autoPlay is enabled to just preview the first frame
+              videoRef.current?.pause()
+            }
+            src={src}
+            className="w-full h-full"
+          ></video>
         </div>
       ) : (
         <div className="relative w-full h-full">

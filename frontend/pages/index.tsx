@@ -1,6 +1,7 @@
 import { GetServerSideProps } from "next";
 import Image from "next/image";
 import React, { useEffect } from "react";
+import { isMobile } from "react-device-detect";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
 import "yet-another-react-lightbox/styles.css";
@@ -216,6 +217,8 @@ export default function App({
                       />
                     ) : (
                       <video
+                        autoPlay={isMobile} // without autoPlay, iOS won't show even preview somehow
+                        muted
                         src={image.dataURL}
                         className={`object-contain h-full w-full ${
                           isUploading ? "grayscale" : ""
