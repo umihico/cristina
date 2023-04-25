@@ -6,6 +6,7 @@ import { LoadingEffect } from "../components/LoadingEffect";
 import { hasMovieExtension } from "./video";
 
 export default function NextJsImage({
+  photo: { height, width },
   imageProps: { src: initialSrc, alt, title, sizes, className, onClick, style },
   wrapperStyle,
 }: RenderPhotoProps) {
@@ -49,12 +50,12 @@ export default function NextJsImage({
             </div>
           )}
           <Image
-            fill
             loading="eager"
             src={src}
             alt={alt}
             title={title}
-            sizes={sizes}
+            height={height}
+            width={width}
             className={className}
             onClick={onClick}
             quality={25}
