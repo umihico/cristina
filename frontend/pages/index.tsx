@@ -1,6 +1,6 @@
 import { GetServerSideProps } from "next";
 import Image from "next/image";
-import React, { useEffect } from "react";
+import React, { MutableRefObject, useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
@@ -8,6 +8,7 @@ import "yet-another-react-lightbox/styles.css";
 import { LoadingEffect } from "../components/LoadingEffect";
 import { Album } from "../components/album";
 import { InsertMockPhotoButton } from "../components/mock";
+import { useOnScreen } from "../lib/hooks";
 import { extractImageDimensions } from "../lib/image";
 import { extractVideoDimensions } from "../lib/video";
 import { requestInsertion } from "./api/dynamo";
@@ -47,6 +48,18 @@ export default function App({
   const [tasks, setTasks] = React.useState<ImageType[]>([]);
   const [currentTask, setCurrentTask] = React.useState<ImageType | null>(null);
   const [images, setImages] = React.useState<ImageType[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const moreButtonRef = React.useRef<HTMLButtonElement>(null);
+  const onScreen = useOnScreen(
+    moreButtonRef as MutableRefObject<Element>,
+    "0px"
+  );
+
+  useEffect(() => {
+    if (onScreen && loadEnabled) {
+      loadMoreAlbum();
+    }
+  }, [onScreen]);
 
   useEffect(() => {
     (async () => {
@@ -108,12 +121,18 @@ export default function App({
 
   const loadMoreAlbum = async () => {
     if (minDisplayOrder === null) return;
-
-    const { photos: olderPhotos } = await fetchPhotosByApi(minDisplayOrder);
-    if (olderPhotos.length < limitPerPage) {
-      setLoadEnabled(false);
+    try {
+      setLoading(true);
+      const { photos: olderPhotos } = await fetchPhotosByApi(minDisplayOrder);
+      if (olderPhotos.length < limitPerPage) {
+        setLoadEnabled(false);
+      }
+      setPhotos((prev) => [...prev, ...olderPhotos]);
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
     }
-    setPhotos((prev) => [...prev, ...olderPhotos]);
   };
   return (
     <>
@@ -140,8 +159,9 @@ export default function App({
             <button
               className="w-1/2 h-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl md:text-3xl font-bold"
               onClick={loadMoreAlbum}
+              ref={moreButtonRef}
             >
-              More?
+              {loading ? <LoadingEffect></LoadingEffect> : <>More?</>}
             </button>
           )}
         </div>
