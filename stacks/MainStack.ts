@@ -4,6 +4,7 @@ import {
   CacheHeaderBehavior,
   CachePolicy,
   CacheQueryStringBehavior,
+  ResponseHeadersPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import { HttpMethods } from "aws-cdk-lib/aws-s3";
 import { NextjsSite, StackContext, StaticSite, Table } from "sst/constructs";
@@ -40,13 +41,6 @@ export function MainStack({ stack, app }: StackContext) {
   const photoCdn = new StaticSite(stack, "images", {
     path: "images",
     purgeFiles: false, // !!! NEVER SET THIS TO TRUE IN PRODUCTION. YOU WILL DELETE YOUR ALL PHOTOS !!!
-    fileOptions: [
-      {
-        exclude: "*",
-        include: ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp"],
-        cacheControl: "max-age=31536000,public,immutable",
-      },
-    ],
     cdk: {
       distribution: {
         comment: "images",
@@ -76,6 +70,24 @@ export function MainStack({ stack, app }: StackContext) {
     cookieBehavior: CacheCookieBehavior.none(),
     headerBehavior: CacheHeaderBehavior.none(),
   });
+
+  // set and replace this cache policy with current "/_next/image*" cache policy BY HAND in the console after deploy
+  const imageResponseHeaderPolicy = new ResponseHeadersPolicy(
+    stack,
+    "imageResponseHeaderPolicy",
+    {
+      responseHeadersPolicyName: `imageResponseHeaderPolicy-${app.stage}-${suffix}`,
+      customHeadersBehavior: {
+        customHeaders: [
+          {
+            header: "Cache-Control",
+            override: true,
+            value: "max-age=31536000,public,immutable",
+          },
+        ],
+      },
+    }
+  );
 
   // Create a Next.js site
   const site = new NextjsSite(stack, "Site", {
