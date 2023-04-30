@@ -29,7 +29,11 @@ export default function NextJsImage({
   };
 
   useEffect(() => {
-    if (src === "") setSrc(initialSrc);
+    if (src === "") {
+      setTimeout(() => {
+        setSrc(initialSrc);
+      }, Math.random() * 1000 + 500);
+    }
   }, [src]);
 
   const isMovie = hasMovieExtension(src);
