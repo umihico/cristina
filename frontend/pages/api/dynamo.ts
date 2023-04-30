@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
 import { s3, s3BucketName } from "../../lib/aws/s3";
+import { fetchRetry } from "../../lib/retry";
 
 type Props = {
   path: string;
@@ -13,10 +14,14 @@ export const requestInsertion = async ({
   width,
   height,
 }: Props): Promise<{}> =>
-  fetch("/api/dynamo", {
-    method: "POST",
-    body: JSON.stringify({ path, width, height }),
-  });
+  fetchRetry(
+    "/api/dynamo",
+    {
+      method: "POST",
+      body: JSON.stringify({ path, width, height }),
+    },
+    5
+  );
 
 export default async function handler(
   req: NextApiRequest,

@@ -10,6 +10,7 @@ import { Album } from "../components/album";
 import { InsertMockPhotoButton } from "../components/mock";
 import { useOnScreen } from "../lib/hooks";
 import { extractImageDimensions } from "../lib/image";
+import { fetchRetry } from "../lib/retry";
 import { extractVideoDimensions } from "../lib/video";
 import { requestInsertion } from "./api/dynamo";
 import {
@@ -111,7 +112,7 @@ export default function App({
         "Content-Type": file.type,
       },
     };
-    await fetch(signedUrl, options);
+    await fetchRetry(signedUrl, options, 5);
     const path = signedUrl.split(".amazonaws.com/")[1].split("?")[0];
     const { width, height } = task.isMovie
       ? await extractVideoDimensions(file)
