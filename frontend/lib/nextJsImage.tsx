@@ -12,7 +12,6 @@ export default function NextJsImage({
 }: RenderPhotoProps) {
   const [completed, setCompleted] = useState(false);
   const [src, setSrc] = useState(initialSrc);
-  const [errorCount, setErrorCount] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   /**
@@ -23,16 +22,15 @@ export default function NextJsImage({
    */
   const retryLaterIfConcurrentInvocationLimitExceeded = async (e: any) => {
     await new Promise((resolve) =>
-      setTimeout(resolve, 1000 + Math.random() * 100 * errorCount * errorCount)
+      setTimeout(resolve, 500 + Math.random() * 1000)
     );
     if (completed) return;
     setSrc("");
     await new Promise((resolve) =>
-      setTimeout(resolve, Math.random() * 100 * errorCount * errorCount)
+      setTimeout(resolve, 500 + Math.random() * 1000)
     );
     if (completed) return;
     setSrc(initialSrc);
-    setErrorCount((prev) => prev + 1);
   };
 
   const isMovie = hasMovieExtension(src);
