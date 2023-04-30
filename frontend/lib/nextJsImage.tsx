@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { MdPlayCircle } from "react-icons/md";
 import type { RenderPhotoProps } from "react-photo-album";
@@ -10,7 +10,7 @@ export default function NextJsImage({
   imageProps: { src: initialSrc, alt, title, sizes, className, onClick, style },
   wrapperStyle,
 }: RenderPhotoProps) {
-  const [showLoading, setShowLoading] = useState(true);
+  const [completed, setCompleted] = useState(false);
   const [src, setSrc] = useState(initialSrc);
   const [errorCount, setErrorCount] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -21,20 +21,19 @@ export default function NextJsImage({
    * @param e
    * @returns
    */
-  const retryLaterIfConcurrentInvocationLimitExceeded = (e: any) => {
-    setTimeout(() => {
-      setSrc("");
-    }, Math.random() * 100 * errorCount * errorCount);
+  const retryLaterIfConcurrentInvocationLimitExceeded = async (e: any) => {
+    await new Promise((resolve) =>
+      setTimeout(resolve, 1000 + Math.random() * 100 * errorCount * errorCount)
+    );
+    if (completed) return;
+    setSrc("");
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.random() * 100 * errorCount * errorCount)
+    );
+    if (completed) return;
+    setSrc(initialSrc);
     setErrorCount((prev) => prev + 1);
   };
-
-  useEffect(() => {
-    if (src === "") {
-      setTimeout(() => {
-        setSrc(initialSrc);
-      }, Math.random() * 1000 + 500);
-    }
-  }, [src]);
 
   const isMovie = hasMovieExtension(src);
 
@@ -62,7 +61,7 @@ export default function NextJsImage({
         </div>
       ) : (
         <div className="relative w-full h-full">
-          {showLoading && (
+          {!completed && (
             <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center cursor-pointer z-10 bg-gray-200">
               <LoadingEffect></LoadingEffect>
             </div>
@@ -78,7 +77,7 @@ export default function NextJsImage({
             onClick={onClick}
             quality={25}
             onError={retryLaterIfConcurrentInvocationLimitExceeded}
-            onLoadingComplete={() => setShowLoading(false)}
+            onLoadingComplete={() => setCompleted(true)}
           />
         </div>
       )}
