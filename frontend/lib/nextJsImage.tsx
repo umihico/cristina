@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { MdPlayCircle } from "react-icons/md";
 import type { RenderPhotoProps } from "react-photo-album";
@@ -12,7 +12,7 @@ export default function NextJsImage({
 }: RenderPhotoProps) {
   const [showLoading, setShowLoading] = useState(true);
   const [src, setSrc] = useState(initialSrc);
-  const [errorCount, setErrorCount] = useState(0);
+  const [errorCount, setErrorCount] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   /**
@@ -22,12 +22,15 @@ export default function NextJsImage({
    * @returns
    */
   const retryLaterIfConcurrentInvocationLimitExceeded = (e: any) => {
-    setSrc("");
     setTimeout(() => {
-      setSrc(initialSrc);
+      setSrc("");
     }, Math.random() * 100 * errorCount * errorCount);
     setErrorCount((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    if (src === "") setSrc(initialSrc);
+  }, [src]);
 
   const isMovie = hasMovieExtension(src);
 
