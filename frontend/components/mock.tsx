@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
+import { fetchRetry } from "../lib/retry";
 import { ImageType } from "../pages";
 
 type Props = {
@@ -21,7 +22,7 @@ const generateMockPhotoUrl = () => {
 
 const mockImage = async () => {
   const url = generateMockPhotoUrl();
-  const response = await fetch(url);
+  const response = await fetchRetry(url, {}, 5);
   const blob = await response.blob();
   const file = new File([blob], "image.jpg", { type: blob.type });
   return {
@@ -33,7 +34,7 @@ const mockImage = async () => {
 
 export const InsertMockPhotoButton = ({ uploadEach, setImages }: Props) => {
   const insertMockPhoto = async () => {
-    const response = await fetch(generateMockPhotoUrl());
+    const response = await fetchRetry(generateMockPhotoUrl(), {}, 3);
     const blob = await response.blob();
     const file = new File([blob], "image.jpg", { type: blob.type });
     await new Promise((resolve) => setTimeout(resolve, 300)); // useState が反映されるまで待つ

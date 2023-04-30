@@ -1,6 +1,7 @@
 import { Key } from "aws-sdk/clients/dynamodb";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
+import { fetchRetry } from "../../lib/retry";
 
 export const limitPerPage = 30;
 
@@ -66,7 +67,9 @@ export default async function handler(
 export const fetchPhotosByApi = async (
   displayOrder: number
 ): Promise<PhotosResponseData> => {
-  return await fetch(
-    `/api/photos?${displayOrder ? `${displayOrderQuery}=${displayOrder}` : ""}`
+  return await fetchRetry(
+    `/api/photos?${displayOrder ? `${displayOrderQuery}=${displayOrder}` : ""}`,
+    {},
+    5
   ).then((x) => x.json());
 };
