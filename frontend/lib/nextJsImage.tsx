@@ -17,6 +17,8 @@ export default function NextJsImage({
   /**
    * To avoid 429 (The rate limit is 10 requests per second...)
    * Such as {"Reason":"ConcurrentInvocationLimitExceeded","Type":"User","message":"Rate Exceeded."}
+   * https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html#api-requests
+   * > Each instance of your execution environment can serve up to 10 requests per second.
    * @param e
    * @returns
    */
