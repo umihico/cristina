@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
 import { fetchRetry } from "../../lib/retry";
 
-export const limitPerPage = 30;
+export const limitPerPage = 20;
 
 export type Photo = {
   src: string;
