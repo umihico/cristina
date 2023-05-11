@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { MdPlayCircle } from "react-icons/md";
 import type { RenderPhotoProps } from "react-photo-album";
@@ -11,7 +11,7 @@ export default function NextJsImage({
   wrapperStyle,
 }: RenderPhotoProps) {
   const [completed, setCompleted] = useState(false);
-  const [src, setSrc] = useState(initialSrc);
+  const [src, setSrc] = useState("init");
   const videoRef = useRef<HTMLVideoElement>(null);
 
   /**
@@ -24,16 +24,25 @@ export default function NextJsImage({
    */
   const retryLaterIfConcurrentInvocationLimitExceeded = async (e: any) => {
     await new Promise((resolve) =>
-      setTimeout(resolve, 500 + Math.random() * 1000)
+      setTimeout(resolve, 500 + Math.random() * 5000)
     );
     if (completed) return;
     setSrc("");
     await new Promise((resolve) =>
-      setTimeout(resolve, 500 + Math.random() * 1000)
+      setTimeout(resolve, 500 + Math.random() * 5000)
     );
     if (completed) return;
     setSrc(initialSrc);
   };
+
+  useEffect(() => {
+    (async () => {
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.random() * 10000)
+      );
+      setSrc(initialSrc);
+    })();
+  }, []);
 
   const isMovie = hasMovieExtension(src);
 
@@ -66,19 +75,21 @@ export default function NextJsImage({
               <LoadingEffect></LoadingEffect>
             </div>
           )}
-          <Image
-            fill
-            loading="eager"
-            src={src}
-            alt={alt}
-            title={title}
-            sizes={sizes}
-            className={className}
-            onClick={onClick}
-            quality={25}
-            onError={retryLaterIfConcurrentInvocationLimitExceeded}
-            onLoadingComplete={() => setCompleted(true)}
-          />
+          {src !== "init" && (
+            <Image
+              fill
+              loading="eager"
+              src={src}
+              alt={alt}
+              title={title}
+              sizes={sizes}
+              className={className}
+              onClick={onClick}
+              quality={25}
+              onError={retryLaterIfConcurrentInvocationLimitExceeded}
+              onLoadingComplete={() => setCompleted(true)}
+            />
+          )}
         </div>
       )}
     </div>
