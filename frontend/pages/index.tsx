@@ -24,7 +24,7 @@ import s from "./style.module.scss";
 
 type Props = {
   photos: Photo[];
-  initialLoadEnabled: boolean;
+  initialMorePhotoExists: boolean;
   displayInsertMockPhotoButton: boolean;
 };
 
@@ -36,10 +36,12 @@ export type ImageType = {
 
 export default function App({
   photos: initPhotos,
-  initialLoadEnabled,
+  initialMorePhotoExists,
   displayInsertMockPhotoButton,
 }: Props) {
-  const [loadEnabled, setLoadEnabled] = React.useState(initialLoadEnabled);
+  const [morePhotoExists, setMorePhotosExists] = React.useState(
+    initialMorePhotoExists
+  );
   const [minDisplayOrder, setMinDisplayOrder] = React.useState(0);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function App({
   );
 
   useEffect(() => {
-    if (onScreen && loadEnabled) {
+    if (onScreen && morePhotoExists) {
       loadMoreAlbum();
     }
   }, [onScreen]);
@@ -70,7 +72,7 @@ export default function App({
           setPhotos(latestPhotos);
           setCurrentTask(null);
           if (latestPhotos.length >= limitPerPage) {
-            setLoadEnabled(true);
+            setMorePhotosExists(true);
           }
           setImages([]);
           return;
@@ -126,7 +128,7 @@ export default function App({
       setLoading(true);
       const { photos: olderPhotos } = await fetchPhotosByApi(minDisplayOrder);
       if (olderPhotos.length < limitPerPage) {
-        setLoadEnabled(false);
+        setMorePhotosExists(false);
       }
       setPhotos((prev) => [...prev, ...olderPhotos]);
     } catch (error) {
@@ -156,7 +158,7 @@ export default function App({
         </div>
         <Album photos={photos}></Album>
         <div className="flex justify-center items-center w-full h-16 my-4">
-          {loadEnabled && (
+          {morePhotoExists && (
             <button
               className="w-1/2 h-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl md:text-3xl font-bold"
               onClick={loadMoreAlbum}
@@ -281,8 +283,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const stage = String(process.env.STAGE);
   const displayInsertMockPhotoButton = stage !== "prod";
   const { photos } = await fetchPhotos({});
-  const initialLoadEnabled = photos.length >= limitPerPage;
+  const initialMorePhotoExists = photos.length >= limitPerPage;
   return {
-    props: { photos, initialLoadEnabled, displayInsertMockPhotoButton },
+    props: { photos, initialMorePhotoExists, displayInsertMockPhotoButton },
   };
 };
