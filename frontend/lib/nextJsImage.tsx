@@ -3,7 +3,9 @@ import { useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { MdPlayCircle } from "react-icons/md";
 import type { RenderPhotoProps } from "react-photo-album";
+import { useRecoilValue } from "recoil";
 import { LoadingEffect } from "../components/LoadingEffect";
+import { devModeState } from "../pages";
 import { hasMovieExtension } from "./video";
 
 export default function NextJsImage({
@@ -14,6 +16,9 @@ export default function NextJsImage({
   const [completed, setCompleted] = useState(false);
   const [src, setSrc] = useState(initialSrc);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const [fetchTryCount, setFetchTryCount] = useState(0);
+  const devMode = useRecoilValue(devModeState);
 
   /**
    * To avoid 429 (The rate limit is 10 requests per second...)
@@ -33,6 +38,7 @@ export default function NextJsImage({
       setTimeout(resolve, 500 + Math.random() * 3000)
     );
     if (completed) return;
+    setFetchTryCount(fetchTryCount + 1);
     setSrc(initialSrc);
   };
 
@@ -64,7 +70,10 @@ export default function NextJsImage({
         <div className="relative w-full h-full">
           {!completed && (
             <div className="loading-photo absolute top-0 left-0 w-full h-full flex justify-center items-center cursor-pointer z-10 bg-gray-200">
-              <LoadingEffect></LoadingEffect>
+              <div>
+                <LoadingEffect></LoadingEffect>
+                {devMode && <div>cnt: {fetchTryCount}</div>}
+              </div>
             </div>
           )}
           <Image
