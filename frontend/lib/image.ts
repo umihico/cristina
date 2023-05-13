@@ -1,3 +1,10 @@
+import { atom } from "recoil";
+
+export const loadingConcurrencyCountState = atom({
+  key: "loadingConcurrencyCountState",
+  default: 10, // default value (aka initial value)
+});
+
 export type Dimensions = {
   width: number;
   height: number;
