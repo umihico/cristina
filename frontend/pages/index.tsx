@@ -24,7 +24,7 @@ import s from "./style.module.scss";
 
 type Props = {
   photos: Photo[];
-  initialLoadEnabled: boolean;
+  initialMorePhotoExists: boolean;
   displayInsertMockPhotoButton: boolean;
 };
 
@@ -36,10 +36,12 @@ export type ImageType = {
 
 export default function App({
   photos: initPhotos,
-  initialLoadEnabled,
+  initialMorePhotoExists,
   displayInsertMockPhotoButton,
 }: Props) {
-  const [loadEnabled, setLoadEnabled] = React.useState(initialLoadEnabled);
+  const [morePhotoExists, setMorePhotosExists] = React.useState(
+    initialMorePhotoExists
+  );
   const [minDisplayOrder, setMinDisplayOrder] = React.useState(0);
   const [photos, setPhotos] = React.useState<Photo[]>(initPhotos);
   useEffect(() => {
@@ -49,28 +51,49 @@ export default function App({
   const [tasks, setTasks] = React.useState<ImageType[]>([]);
   const [currentTask, setCurrentTask] = React.useState<ImageType | null>(null);
   const [images, setImages] = React.useState<ImageType[]>([]);
-  const [loading, setLoading] = React.useState(false);
+  const [loadMore, setLoadMore] = React.useState(false);
   const moreButtonRef = React.useRef<HTMLButtonElement>(null);
   const onScreen = useOnScreen(
     moreButtonRef as MutableRefObject<Element>,
-    "0px"
+    "500px"
   );
+  const [loadingPhotosCount, setLoadingPhotosCount] = React.useState(0);
 
   useEffect(() => {
-    if (onScreen && loadEnabled) {
-      loadMoreAlbum();
+    setInterval(() => {
+      setLoadingPhotosCount(
+        document.getElementsByClassName("loading-photo").length
+      );
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    if (
+      !loadMore &&
+      onScreen &&
+      morePhotoExists &&
+      loadingPhotosCount < limitPerPage
+    ) {
+      setLoadMore(true);
     }
-  }, [onScreen]);
+  }, [onScreen, morePhotoExists, loadingPhotosCount, loadMore]);
+
+  useEffect(() => {
+    if (!loadMore) return;
+    loadMoreAlbum();
+  }, [loadMore]);
 
   useEffect(() => {
     (async () => {
       try {
         if (tasks.length === 0) {
-          const latestPhotos = (await fetchPhotosByApi(0)).photos;
+          const latestPhotos = (
+            await fetchPhotosByApi(0, limitPerPage - loadingPhotosCount)
+          ).photos;
           setPhotos(latestPhotos);
           setCurrentTask(null);
           if (latestPhotos.length >= limitPerPage) {
-            setLoadEnabled(true);
+            setMorePhotosExists(true);
           }
           setImages([]);
           return;
@@ -123,16 +146,18 @@ export default function App({
   const loadMoreAlbum = async () => {
     if (minDisplayOrder === null) return;
     try {
-      setLoading(true);
-      const { photos: olderPhotos } = await fetchPhotosByApi(minDisplayOrder);
-      if (olderPhotos.length < limitPerPage) {
-        setLoadEnabled(false);
+      const { photos: olderPhotos } = await fetchPhotosByApi(
+        minDisplayOrder,
+        limitPerPage - loadingPhotosCount
+      );
+      if (olderPhotos.length === 0) {
+        setMorePhotosExists(false);
       }
       setPhotos((prev) => [...prev, ...olderPhotos]);
     } catch (error) {
       throw error;
     } finally {
-      setLoading(false);
+      setLoadMore(false);
     }
   };
   return (
@@ -156,13 +181,13 @@ export default function App({
         </div>
         <Album photos={photos}></Album>
         <div className="flex justify-center items-center w-full h-16 my-4">
-          {loadEnabled && (
+          {morePhotoExists && (
             <button
               className="w-1/2 h-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl md:text-3xl font-bold"
-              onClick={loadMoreAlbum}
+              onClick={() => setLoadMore(true)}
               ref={moreButtonRef}
             >
-              {loading ? <LoadingEffect></LoadingEffect> : <>More?</>}
+              {loadMore ? <LoadingEffect></LoadingEffect> : <>More?</>}
             </button>
           )}
         </div>
@@ -280,9 +305,9 @@ export default function App({
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const stage = String(process.env.STAGE);
   const displayInsertMockPhotoButton = stage !== "prod";
-  const { photos } = await fetchPhotos({});
-  const initialLoadEnabled = photos.length >= limitPerPage;
+  const { photos } = await fetchPhotos({ count: limitPerPage });
+  const initialMorePhotoExists = photos.length >= limitPerPage;
   return {
-    props: { photos, initialLoadEnabled, displayInsertMockPhotoButton },
+    props: { photos, initialMorePhotoExists, displayInsertMockPhotoButton },
   };
 };

@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { dynamoDb, dynamoDbTableName } from "../../lib/aws/dynamodb";
 import { fetchRetry } from "../../lib/retry";
 
-export const limitPerPage = 20;
+export const limitPerPage = 10;
 
 export type Photo = {
   src: string;
@@ -12,10 +12,10 @@ export type Photo = {
   displayOrder: number;
 };
 
-const toParams = (exclusiveStartKey: Key | undefined) => {
+const toParams = (exclusiveStartKey: Key | undefined, count: number) => {
   return {
     TableName: dynamoDbTableName,
-    Limit: limitPerPage,
+    Limit: count,
     ExclusiveStartKey: exclusiveStartKey,
     ScanIndexForward: false,
   };
@@ -23,14 +23,16 @@ const toParams = (exclusiveStartKey: Key | undefined) => {
 
 type Props = {
   exclusiveStartKey?: Key;
+  count: number;
 };
 
 export const fetchPhotos = async ({
   exclusiveStartKey,
+  count,
 }: Props): Promise<{
   photos: Photo[];
 }> => {
-  const params = toParams(exclusiveStartKey);
+  const params = toParams(exclusiveStartKey, count);
   const response = await dynamoDb().scan(params).promise();
   const photos = [
     ...(response.Items || []).map((item) => ({
@@ -60,15 +62,17 @@ export default async function handler(
           photoType: "anonymous",
         } as Key)
       : undefined,
+    count: parseInt(req.query["count"] as string),
   });
   res.status(200).send({ photos });
 }
 
 export const fetchPhotosByApi = async (
-  displayOrder: number
+  displayOrder: number,
+  count: number
 ): Promise<PhotosResponseData> => {
   return await fetchRetry(
-    `/api/photos?${displayOrder ? `${displayOrderQuery}=${displayOrder}` : ""}`,
+    `/api/photos?${`${displayOrderQuery}=${displayOrder}&count=${count}`}`,
     {},
     5
   ).then((x) => x.json());
