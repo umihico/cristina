@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { MdPlayCircle } from "react-icons/md";
 import type { RenderPhotoProps } from "react-photo-album";
@@ -13,6 +13,7 @@ export default function NextJsImage({
   imageProps: { src: initialSrc, alt, title, sizes, className, onClick, style },
   wrapperStyle,
 }: RenderPhotoProps) {
+  const [retryTask, setRetryTask] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [src, setSrc] = useState(initialSrc);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -28,19 +29,31 @@ export default function NextJsImage({
    * @param e
    * @returns
    */
-  const retryLaterIfConcurrentInvocationLimitExceeded = async (e: any) => {
-    await new Promise((resolve) =>
-      setTimeout(resolve, 500 + Math.random() * 3000)
-    );
-    if (completed) return;
-    setSrc("");
-    await new Promise((resolve) =>
-      setTimeout(resolve, 500 + Math.random() * 3000)
-    );
-    if (completed) return;
-    setFetchTryCount(fetchTryCount + 1);
-    setSrc(initialSrc);
+  const retryLaterIfConcurrentInvocationLimitExceeded = (e: any) => {
+    setRetryTask(true);
   };
+
+  useEffect(() => {
+    if (!retryTask) return;
+    // fetchTryCountが小刻みに動くので、onErrorが呼ばれるタイミングが想定より不透明に多く、頻繁な模様。
+    // そのため、retryTask+useEffectで多重に実行されないようにする
+
+    (async () => {
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          // emptyの状態からonErrorが発火しない状況を観測し、待機時間が異常に短くなったためと思われるので、最低1秒待つ
+          1000 + 1000 * Math.random() * Math.min(fetchTryCount, 20)
+        )
+      );
+      if (completed) return; // 起こることはないはず
+      setFetchTryCount(fetchTryCount + 1);
+      setRetryTask(false);
+      // 再トライしても429が返ってくるので、URLを変える
+      // コンソールを開くと治る＝disable cacheがきいているためなので、URLを変えることで対応
+      setSrc(src === "" ? `${initialSrc}?retry=${fetchTryCount}` : "");
+    })();
+  }, [retryTask]);
 
   const isMovie = hasMovieExtension(src);
 
@@ -72,7 +85,14 @@ export default function NextJsImage({
             <div className="loading-photo absolute top-0 left-0 w-full h-full flex justify-center items-center cursor-pointer z-10 bg-gray-200">
               <div>
                 <LoadingEffect></LoadingEffect>
-                {devMode && <div>cnt: {fetchTryCount}</div>}
+                {devMode && (
+                  <>
+                    <div>cnt: {fetchTryCount}</div>
+                    <a href={src} target="_blank">
+                      {src === "" ? "src(empty)" : "src"}
+                    </a>
+                  </>
+                )}
               </div>
             </div>
           )}
