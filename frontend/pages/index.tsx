@@ -4,6 +4,7 @@ import React, { MutableRefObject, useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
+import { atom, useRecoilState } from "recoil";
 import "yet-another-react-lightbox/styles.css";
 import { LoadingEffect } from "../components/LoadingEffect";
 import { Album } from "../components/album";
@@ -28,6 +29,11 @@ type Props = {
   devMode: boolean;
 };
 
+export const devModeState = atom({
+  key: "devModeState", // unique ID (with respect to other atoms/selectors)
+  default: false,
+});
+
 export type ImageType = {
   file: File;
   dataURL: string;
@@ -37,7 +43,7 @@ export type ImageType = {
 export default function App({
   photos: initPhotos,
   initialMorePhotoExists,
-  devMode,
+  devMode: initialDevMode,
 }: Props) {
   const [morePhotoExists, setMorePhotosExists] = React.useState(
     initialMorePhotoExists
@@ -57,9 +63,11 @@ export default function App({
     moreButtonRef as MutableRefObject<Element>,
     "500px"
   );
+  const [devMode, setDevMode] = useRecoilState(devModeState);
   const [loadingPhotosCount, setLoadingPhotosCount] = React.useState(0);
 
   useEffect(() => {
+    setDevMode(initialDevMode);
     setInterval(() => {
       setLoadingPhotosCount(
         document.getElementsByClassName("loading-photo").length
@@ -304,7 +312,10 @@ export default function App({
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const stage = String(process.env.STAGE);
-  const devMode = stage !== "prod" || context.query.dev === "1";
+  const devMode =
+    context.query.dev === undefined
+      ? stage !== "prod"
+      : context.query.dev === "1";
   const { photos } = await fetchPhotos({ count: limitPerPage });
   const initialMorePhotoExists = photos.length >= limitPerPage;
   return {
