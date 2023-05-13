@@ -25,7 +25,7 @@ import s from "./style.module.scss";
 type Props = {
   photos: Photo[];
   initialMorePhotoExists: boolean;
-  displayInsertMockPhotoButton: boolean;
+  devMode: boolean;
 };
 
 export type ImageType = {
@@ -37,7 +37,7 @@ export type ImageType = {
 export default function App({
   photos: initPhotos,
   initialMorePhotoExists,
-  displayInsertMockPhotoButton,
+  devMode,
 }: Props) {
   const [morePhotoExists, setMorePhotosExists] = React.useState(
     initialMorePhotoExists
@@ -163,7 +163,7 @@ export default function App({
   return (
     <>
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
-        {displayInsertMockPhotoButton && (
+        {devMode && (
           <InsertMockPhotoButton
             uploadEach={uploadEach}
             setImages={setImages}
@@ -304,10 +304,10 @@ export default function App({
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const stage = String(process.env.STAGE);
-  const displayInsertMockPhotoButton = stage !== "prod";
+  const devMode = stage !== "prod" || context.query.dev === "1";
   const { photos } = await fetchPhotos({ count: limitPerPage });
   const initialMorePhotoExists = photos.length >= limitPerPage;
   return {
-    props: { photos, initialMorePhotoExists, displayInsertMockPhotoButton },
+    props: { photos, initialMorePhotoExists, devMode },
   };
 };
