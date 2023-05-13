@@ -4,6 +4,7 @@ import React, { MutableRefObject, useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { MdOutlineAdd } from "react-icons/md";
+import { atom, useRecoilState } from "recoil";
 import "yet-another-react-lightbox/styles.css";
 import { LoadingEffect } from "../components/LoadingEffect";
 import { Album } from "../components/album";
@@ -25,8 +26,13 @@ import s from "./style.module.scss";
 type Props = {
   photos: Photo[];
   initialMorePhotoExists: boolean;
-  displayInsertMockPhotoButton: boolean;
+  devMode: boolean;
 };
+
+export const devModeState = atom({
+  key: "devModeState", // unique ID (with respect to other atoms/selectors)
+  default: false,
+});
 
 export type ImageType = {
   file: File;
@@ -37,7 +43,7 @@ export type ImageType = {
 export default function App({
   photos: initPhotos,
   initialMorePhotoExists,
-  displayInsertMockPhotoButton,
+  devMode: initialDevMode,
 }: Props) {
   const [morePhotoExists, setMorePhotosExists] = React.useState(
     initialMorePhotoExists
@@ -57,9 +63,11 @@ export default function App({
     moreButtonRef as MutableRefObject<Element>,
     "500px"
   );
+  const [devMode, setDevMode] = useRecoilState(devModeState);
   const [loadingPhotosCount, setLoadingPhotosCount] = React.useState(0);
 
   useEffect(() => {
+    setDevMode(initialDevMode);
     setInterval(() => {
       setLoadingPhotosCount(
         document.getElementsByClassName("loading-photo").length
@@ -163,7 +171,7 @@ export default function App({
   return (
     <>
       <div className="mx-auto w-full sm:w-10/12 md:w-9/12 lg:w-8/12 xl:w-7/12">
-        {displayInsertMockPhotoButton && (
+        {devMode && (
           <InsertMockPhotoButton
             uploadEach={uploadEach}
             setImages={setImages}
@@ -304,10 +312,13 @@ export default function App({
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const stage = String(process.env.STAGE);
-  const displayInsertMockPhotoButton = stage !== "prod";
+  const devMode =
+    context.query.dev === undefined
+      ? stage !== "prod"
+      : context.query.dev === "1";
   const { photos } = await fetchPhotos({ count: limitPerPage });
   const initialMorePhotoExists = photos.length >= limitPerPage;
   return {
-    props: { photos, initialMorePhotoExists, displayInsertMockPhotoButton },
+    props: { photos, initialMorePhotoExists, devMode },
   };
 };
