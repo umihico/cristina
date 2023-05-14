@@ -6,12 +6,14 @@ import type { RenderPhotoProps } from "react-photo-album";
 import { useRecoilValue } from "recoil";
 import { LoadingEffect } from "../components/LoadingEffect";
 import { devModeState } from "../pages";
+import { Photo } from "../pages/api/photos";
 import { hasMovieExtension } from "./video";
 
 export default function NextJsImage({
   layout: { index },
   imageProps: { src: initialSrc, alt, title, sizes, className, onClick, style },
   wrapperStyle,
+  photo,
 }: RenderPhotoProps) {
   const [retryTask, setRetryTask] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -58,7 +60,14 @@ export default function NextJsImage({
   const isMovie = hasMovieExtension(src);
 
   return (
-    <div style={wrapperStyle}>
+    <div style={wrapperStyle} className="relative">
+      {devMode && (
+        <div className="absolute top-0 left-0 z-10 bg-white p-1 bg-opacity-50">
+          {`ID:${(photo as Photo).displayOrder
+            .toString()
+            .replace(/\B(?=(\d{4})+(?!\d))/g, " ")}`}
+        </div>
+      )}
       {isMovie ? (
         <div className="relative w-full h-full">
           <div

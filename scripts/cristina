@@ -24,4 +24,13 @@ docker-compose run --rm sst npx sst deploy --stage prod --region $AWS_PROD_REGIO
 ( ngrok )
 ngrok http ${NEXTJS_PORT}
 ;;
+( remove-image-dev )
+# e.g. cristina remove-image-dev 316206457482
+aws dynamodb delete-item --table-name $DEV_IMAGE_TABLE_NAME --key "{\"photoType\": {\"S\": \"anonymous\"}, \"displayOrder\": {\"N\": \"${2}\"}}" --region $AWS_DEV_REGION
+;;
+( remove-image-prod )
+# devMode(?dev=1)でアクセスして表示されている番号を指定する
+# e.g. cristina remove-image-prod 316206457482
+aws dynamodb delete-item --table-name $RPOD_IMAGE_TABLE_NAME --key "{\"photoType\": {\"S\": \"anonymous\"}, \"displayOrder\": {\"N\": \"${2}\"}}" --region $AWS_PROD_REGION
+;;
 esac
