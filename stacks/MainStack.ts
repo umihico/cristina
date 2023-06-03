@@ -108,6 +108,8 @@ export function MainStack({ stack, app }: StackContext) {
         photoCdn.cdk?.distribution.domainName ||
         (process.env.DEV_CLOUDFRONT_DOMAIN as string),
       UPLOAD_ENABLED: app.stage === "prod" ? "false" : "true",
+      NEXT_PUBLIC_SHARABLE_GOOGLE_PHOTO_URL:
+        process.env.NEXT_PUBLIC_SHARABLE_GOOGLE_PHOTO_URL || "none",
     },
   });
 
