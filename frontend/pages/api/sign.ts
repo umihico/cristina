@@ -27,7 +27,7 @@ export type SignatureResponseData = {
   signedUrl: string;
 };
 
-export const uploadEnabled = process.env.UPLOAD_ENABLED === "true";
+export const uploadEnabled = process.env.NEXT_PUBLIC_UPLOAD_ENABLED === "true";
 
 export default async function handler(
   req: NextApiRequest,

@@ -234,11 +234,14 @@ export default function App({
           <a
             href={process.env.NEXT_PUBLIC_SHARABLE_GOOGLE_PHOTO_URL}
             target="_blank"
+            className="z-50"
           >
-            <img
-              className="object-contain fixed h-16 w-16 md:h-20 md:w-20 bottom-8 right-8 border-2 p-2 rounded-full"
+            <Image
+              className="object-contain fixed h-16 w-16 md:h-20 md:w-20 bottom-8 right-8 border-2 p-2 bg-white rounded-full shadow-md shadow-black"
               src="/assets/google-drive.png"
-              alt="header"
+              alt="Google Drive link"
+              height={64}
+              width={64}
             />
           </a>
         )}
