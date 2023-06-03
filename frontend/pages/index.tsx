@@ -230,6 +230,21 @@ export default function App({
             ></input>
           </label>
         )}
+        {process.env.NEXT_PUBLIC_SHARABLE_GOOGLE_PHOTO_URL && !uploadEnabled && (
+          <a
+            href={process.env.NEXT_PUBLIC_SHARABLE_GOOGLE_PHOTO_URL}
+            target="_blank"
+            className="z-50"
+          >
+            <Image
+              className="object-contain fixed h-16 w-16 md:h-20 md:w-20 bottom-8 right-8 border-2 p-2 bg-white rounded-full shadow-md shadow-black"
+              src="/assets/google-drive.png"
+              alt="Google Drive link"
+              height={64}
+              width={64}
+            />
+          </a>
+        )}
         {images.length > 0 && (
           <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 z-10 flex items-center justify-center">
             <div className="w-11/12 flex flex-wrap items-center justify-center">
