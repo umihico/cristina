@@ -20,7 +20,7 @@ import {
   fetchPhotosByApi,
   limitPerPage,
 } from "./api/photos";
-import { requestSignedUrl } from "./api/sign";
+import { requestSignedUrl, uploadEnabled } from "./api/sign";
 import s from "./style.module.scss";
 
 type Props = {
@@ -199,35 +199,37 @@ export default function App({
             </button>
           )}
         </div>
-        <label aria-label="add image">
-          <MdOutlineAdd
-            className={`${s.MdOutlineAdd} cursor-pointer fixed h-16 w-16 md:h-20 md:w-20 bottom-8 right-8`}
-          ></MdOutlineAdd>
-          <input
-            type="file"
-            className="hidden"
-            accept="image/*,video/*"
-            multiple
-            onChange={(e) => {
-              const rawFiles = e.target.files;
-              if (rawFiles === null) return;
-              const files = Array.from(Array(rawFiles.length).keys())
-                .map((i) => {
-                  return rawFiles.item(i);
-                })
-                .filter((file): file is File => file !== null);
-              setImages(
-                files.map((file) => {
-                  return {
-                    file,
-                    isMovie: file.type.startsWith("video/"),
-                    dataURL: URL.createObjectURL(file),
-                  };
-                })
-              );
-            }}
-          ></input>
-        </label>
+        {uploadEnabled && (
+          <label aria-label="add image">
+            <MdOutlineAdd
+              className={`${s.MdOutlineAdd} cursor-pointer fixed h-16 w-16 md:h-20 md:w-20 bottom-8 right-8`}
+            ></MdOutlineAdd>
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*,video/*"
+              multiple
+              onChange={(e) => {
+                const rawFiles = e.target.files;
+                if (rawFiles === null) return;
+                const files = Array.from(Array(rawFiles.length).keys())
+                  .map((i) => {
+                    return rawFiles.item(i);
+                  })
+                  .filter((file): file is File => file !== null);
+                setImages(
+                  files.map((file) => {
+                    return {
+                      file,
+                      isMovie: file.type.startsWith("video/"),
+                      dataURL: URL.createObjectURL(file),
+                    };
+                  })
+                );
+              }}
+            ></input>
+          </label>
+        )}
         {images.length > 0 && (
           <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 z-10 flex items-center justify-center">
             <div className="w-11/12 flex flex-wrap items-center justify-center">

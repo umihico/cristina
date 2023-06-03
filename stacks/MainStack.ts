@@ -107,6 +107,7 @@ export function MainStack({ stack, app }: StackContext) {
       IMAGE_DOMAIN:
         photoCdn.cdk?.distribution.domainName ||
         (process.env.DEV_CLOUDFRONT_DOMAIN as string),
+      UPLOAD_ENABLED: app.stage === "prod" ? "false" : "true",
     },
   });
 
