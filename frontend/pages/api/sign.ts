@@ -27,10 +27,16 @@ export type SignatureResponseData = {
   signedUrl: string;
 };
 
+export const uploadEnabled = process.env.UPLOAD_ENABLED === "true";
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<SignatureResponseData>
 ) {
+  if (!uploadEnabled) {
+    res.status(403).send({ signedUrl: "" });
+    return;
+  }
   const s3Params = {
     Bucket: s3BucketName,
     Key: `images/${new Date().valueOf()}.${req.query.fileExtension}`,
